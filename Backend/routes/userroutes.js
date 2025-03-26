@@ -1,11 +1,18 @@
-const express=require('express')
+const express = require('express')
 
-const router=express.Router();
+const { register,
+    allUsers,
+    oneUser,
+    deleteUser,
+    updateuser
+} = require('../contollers/usercontrol')
 
-router.post('/register')
-router.get('/allusers')
-router.get('/Getuser:id')//search
-router.delete('/DeleteUser:id')
-router.patch('/UpdateUser:id')
+const router = express.Router();
 
-module.exports=router
+router.post('/register', register)
+router.get('/allusers', allUsers)
+router.get('/Getuser/:id', oneUser)//search
+router.delete('/DeleteUser/:id', deleteUser)
+router.patch('/UpdateUser/:id', updateuser)//m5dmthch
+
+module.exports = router
