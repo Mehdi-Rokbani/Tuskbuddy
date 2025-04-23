@@ -2,6 +2,52 @@ const user = require('../models/User');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 const mongoose = require('mongoose')
+const jwt = require('jsonwebtoken')
+
+const createtoken = (_id) => {
+    return jwt.sign({ _id }, process.env.SECRET, { expiresIn: '1d' });
+}
+
+// login
+
+const createToken = (_id) => {
+    return jwt.sign({ _id }, process.env.SECRET, { expiresIn: '1d' });
+};
+
+const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Basic field validation
+        if (!email || !password) {
+            return res.status(400).json({ error: 'All fields must be filled.' });
+        }
+
+        // Check if user exists
+        const checkUser = await user.findOne({ email });
+        if (!checkUser) {
+            return res.status(404).json({ error: 'No user found with this email.' });
+        }
+
+        // Compare passwords
+        const match = await bcrypt.compare(password, checkUser.password);
+        if (!match) {
+            return res.status(400).json({ error: 'Email or password is incorrect.' });
+        }
+
+        // Create JWT
+        const token = createToken(checkUser._id);
+
+        res.status(200).json({
+            message: 'Logged in successfully.',
+            user: checkUser,
+            token
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 
 // Register a new user
 const register = async (req, res) => {
@@ -29,9 +75,11 @@ const register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create and save the new user
-        const newUser = await user.create({ username, email, password: hashedPassword, role });
+        const newUser = await user.create({ username, email, password: hashedPassword, role })
 
-        res.status(201).json({ message: 'User registered successfully.', user: newUser });
+        token = createtoken(newUser._id)
+
+        res.status(201).json({ message: 'User registered successfully.', user: newUser, token });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -69,8 +117,8 @@ const oneUser = async (req, res) => {
 };
 
 //update user
-const updateuser= async (req,res) =>{
-    const {id}=req.params
+const updateuser = async (req, res) => {
+    const { id } = req.params
 
 }
 
@@ -92,4 +140,4 @@ const deleteUser = async (req, res) => {
     }
 };
 
-module.exports = { register, allUsers, oneUser,deleteUser,updateuser };
+module.exports = { register, allUsers, oneUser, deleteUser, updateuser, login };

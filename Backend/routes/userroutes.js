@@ -4,11 +4,13 @@ const { register,
     allUsers,
     oneUser,
     deleteUser,
-    updateuser
+    updateuser,
+    login
 } = require('../contollers/usercontrol')
 
 const router = express.Router();
 
+router.post('/login',login)
 router.post('/register', register)
 router.get('/allusers', allUsers)
 router.get('/Getuser/:id', oneUser)//search
