@@ -1,0 +1,49 @@
+.home-container {
+    background-color: #043873;
+    min-height: 100vh;
+    padding-left: 220px; /* leave space for sidebar */
+  }
+  
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #043873;
+    padding: 20px;
+  }
+  
+  .main-logo {
+    color: white;
+    cursor: pointer;
+  }
+  
+  .search-bar {
+    padding: 8px;
+    border-radius: 20px;
+    border: none;
+    width: 250px;
+  }
+  
+  .logout-button {
+    padding: 8px 16px;
+    background-color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .projects-container {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+  }
+  
+  .project-card {
+    width: 150px;
+    height: 180px;
+    background-color: #5da9ff;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+  }
+  

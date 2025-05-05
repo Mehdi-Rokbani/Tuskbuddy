@@ -3,25 +3,39 @@ import { useSingup } from "../hooks/useSignup";
 import "../assets/style/Signup.css";
 import "../assets/style/Header.css"
 import Header from "../components/Header";
+import { Link } from "react-router-dom";
+import { useAuthContext } from "../hooks/useAuthContext";
+import { useNavigate } from "react-router-dom";
 const SignupForm = () => {
     const [email, setEmail] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [passwordCheck, setPasswordCheck] = useState("");
     const [role, setRole] = useState("");
-    const [signup, Error, Loading] = useSingup()
+    const { signup, Error, Loading } = useSingup()
+    const [fornerror,seterror]=useState(null)
+    const {user}=useAuthContext()
+    const navigate=useNavigate();
+    if(user){
+        navigate('/')
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // You can handle form submission logic here
-        let user = {
-            email: email,
-            username: username,
-            password: password,
-            role: role
+        if (password !== passwordCheck) {
+            seterror("password confirmation incorrect")
         }
-        console.log(user);
-        signup(user);
+        else {
+            seterror(null)
+            let user = {
+                email: email,
+                username: username,
+                password: password,
+                role: role
+            }
+
+            await signup(user);
+        }
     };
 
     return (
@@ -87,9 +101,10 @@ const SignupForm = () => {
 
                     <button type="submit" disabled={Loading}>Sign up</button>
                     <p className="signin-text">
-                        Already Have An Account? <a href="#">Sign In</a>
+                        Already Have An Account?<Link to='/login'>Sign in</Link>
                     </p>
                     {Error && <div className="error"> {Error}</div>}
+                    {fornerror && <div className="error"> {fornerror}</div>}
                 </form>
             </div>
         </div>

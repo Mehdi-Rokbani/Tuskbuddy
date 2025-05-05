@@ -1,0 +1,160 @@
+.projects-section.p {
+    color: white;
+}
+
+body {
+    background-color: #0f2d62;
+
+}
+
+.projects-section {
+
+
+    min-height: 100vh;
+    padding: 2rem;
+
+    color: white;
+}
+
+.projects-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.H1 {
+    font-size: 2rem;
+}
+
+.create-project-btn {
+    background-color: #1a73e8;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.create-project-btn:hover {
+    background-color: #1666c1;
+}
+
+.projects-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.no-projects {
+    text-align: center;
+    margin-top: 5rem;
+}
+
+.fake {
+    display: inline-block;
+    background-color: #1a73e8;
+    /* Google-style blue */
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.fake:hover {
+    background-color: #1666c1;
+}
+
+
+
+/*request style*/
+
+.request-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px;
+}
+
+.request-item {
+    background-color: #f4f6f8;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: box-shadow 0.3s ease;
+}
+
+.request-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.request-info p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: black;
+}
+
+.request-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.accept-btn,
+.refuse-btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.accept-btn {
+    background-color: #4caf50;
+    color: white;
+}
+
+.accept-btn:hover {
+    background-color: #43a047;
+}
+
+.refuse-btn {
+    background-color: #f44336;
+    color: white;
+}
+
+.refuse-btn:hover {
+    background-color: #e53935;
+}
+
+.no-requests {
+    padding: 20px;
+    text-align: center;
+    color: white;
+    font-size: 16px;
+}
+
+.request-container {
+    margin: 30px;
+}
+
+.request-title {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.H1 {
+    color: white;
+}

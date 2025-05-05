@@ -4,10 +4,6 @@ const validator = require('validator');
 const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
 
-const createtoken = (_id) => {
-    return jwt.sign({ _id }, process.env.SECRET, { expiresIn: '1d' });
-}
-
 // login
 
 const createToken = (_id) => {
@@ -77,7 +73,7 @@ const register = async (req, res) => {
         // Create and save the new user
         const newUser = await user.create({ username, email, password: hashedPassword, role })
 
-        token = createtoken(newUser._id)
+        token = createToken(newUser._id)
 
         res.status(201).json({ message: 'User registered successfully.', user: newUser, token });
     } catch (error) {
@@ -118,9 +114,30 @@ const oneUser = async (req, res) => {
 
 //update user
 const updateuser = async (req, res) => {
-    const { id } = req.params
+    const { id } = req.params;
 
-}
+    // Check if the ID is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    try {
+        const updatedUser = await user.findByIdAndUpdate(
+            id,
+            { ...req.body },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        res.status(500).json({ message: "Error updating user", error: error.message });
+    }
+};
+
 
 //delete user
 const deleteUser = async (req, res) => {

@@ -1,0 +1,106 @@
+body {
+    background-color: #0f2d62;
+}
+
+.container0 {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #f9f9f9;
+    border-radius: 15px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+
+}
+
+.project-details-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 40px;
+    gap: 50px;
+}
+
+.project-info,
+.owner-info {
+    flex: 1;
+    background: #f9f9f9;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    height: 300px;
+}
+
+.project-info h2 {
+    margin-bottom: 20px;
+}
+
+.owner-info h3 {
+    margin-bottom: 15px;
+}
+
+p {
+    margin: 10px 0;
+    font-size: 16px;
+}
+
+
+
+.project-info,
+.owner-info {
+    margin-bottom: 2rem;
+}
+
+.project-info h2,
+.owner-info h3 {
+    color: #003366;
+}
+
+.join-project-button {
+    background-color: #003366;
+    color: #fff;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 15px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: block;
+    margin: 0 auto;
+}
+
+.join-project-button:hover {
+    background-color: #001f4d;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.modal-content {
+    
+    padding: 2rem;
+    border-radius: 8px;
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-size: 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: white;
+}

@@ -1,25 +1,26 @@
 import { useAuthContext } from './useAuthContext'
-import {  useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-export const useSingup = () => {
+import { useState } from 'react'
+export const useLogin = () => {
     const [Error, setError] = useState(null)
     const [Loading, setLoading] = useState(null)
     const { dispatch } = useAuthContext();
-    const Navigate = useNavigate()
+    const navigate=useNavigate()
 
 
-    const signup = async (user) => {
+    const login = async (email,password) => {
         setLoading(true)
         setError(null)
 
-        const response = await fetch("/users/register"
+
+        const response = await fetch("/users/login"
             , {
                 method: "POST",
                 headers: { "content-Type": "application/json" },
-                body: JSON.stringify(user)
+                body: JSON.stringify({email,password})
             })
         const json = await response.json()
-        console.log('what am i geting : ', json)
+        console.log('what am i geting : ',json)
         if (!response.ok) {
             setLoading(false)
             setError(json.error)
@@ -37,14 +38,12 @@ export const useSingup = () => {
             setLoading(false)
             console.log(json)
 
-            Navigate('/');
-
-
+            navigate('/')
         }
 
 
     }
 
-    return { signup, Loading, Error }
+    return { login, Loading, Error }
 
 }

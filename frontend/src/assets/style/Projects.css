@@ -1,0 +1,37 @@
+* {
+    margin-top: 0;
+}
+
+.projects-section0 {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: white;
+}
+
+.projects-container0 {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    padding-bottom: 20px;
+}
+
+.H10 {
+    color: black;
+    font-size: larger;
+    font: 5em sans-serif;
+}
+.all-projects-button {
+    padding: 10px 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.all-projects-button:hover {
+    background-color: #218838;
+}

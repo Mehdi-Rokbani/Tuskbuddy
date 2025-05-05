@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
     role: { type: String, enum: ["freelancer", "client"], required: true },
 
     // Champs spécifiques pour les freelancers
-    skills: { type: [String], default: [] }, // Ex: ["JavaScript", "Symfony", "Angular"]
+    skills: { type: [String], default: [] },
 
     // Références aux tâches (Freelancer = tâches assignées, Client = tâches créées)
     assignedTasks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }], // Pour les freelancers

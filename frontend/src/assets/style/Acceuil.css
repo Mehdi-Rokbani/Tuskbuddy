@@ -1,102 +1,137 @@
 /* HomePage.css */
 body {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-  }
-  
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+
+  color: inherit;
+
+  outline: none;
+
+  box-shadow: none;
+
+  -webkit-tap-highlight-color: transparent;
+
+}
+
+a:focus,
+a:active {
+  outline: none;
+  box-shadow: none;
+  color: inherit;
+}
+
+
 .homepage {
-    background-color: #0f2d62;
-    color: white;
-    min-height: 100vh;
-    padding: 2rem;
-    font-family: Arial, sans-serif;
-  }
+
+  background-color: #0f2d62;
+  color: white;
+  min-height: 100vh;
+  padding: 2rem;
+  font-family: Arial, sans-serif;
+  height: 200vh;
   
-  .homepage-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4rem;
-    margin-left: 100px;
-  }
+ 
   
-  .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-  
-  .header-right {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    margin-right: 100px;
-  }
-  
-  .search-input {
-    padding: 0.5rem 1rem;
-    border-radius: 999px;
-    border: none;
-    outline: none;
-    width: 300px;
-    margin-right: 340px;
-   
-  }
-  
-  .login-button,
-  .signup-button,
-  .start-button {
-    padding: 0.5rem 1rem;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-  }
-  
-  .login-button {
-    background-color: white;
-    color: #0f2d62;
-  }
-  
-  .signup-button {
-    background-color: #4F9CF9;
-    color: white;
-  }
-  
-  .start-button {
-    margin-top: 1rem;
-    background-color: #4F9CF9;
-    color: white;
-  }
-  
+}
+
+.homepage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4rem;
+  margin-left: 100px;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.header-right {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-right: 100px;
+}
+
+.search-input {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: none;
+  outline: none;
+  width: 300px;
+  margin-right: 340px;
+
+}
+
+.login-button,
+.signup-button,
+.start-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+.start-button{
+  width: 200px;
+  height: 50px;
+}
+.login-button {
+  background-color: white;
+  color: #0f2d62;
+}
+
+.signup-button {
+  background-color: #4F9CF9;
+  color: white;
+}
+
+.start-button {
+  margin-top: 1rem;
+  background-color: #4F9CF9;
+  color: white;
+}
+
+.homepage-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
   .homepage-main {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
   }
+}
+
+.main-text {
+  max-width: 800px;
+  height: 150px;
+  margin-bottom: 10rem;
+  width: 600px;
+}
+
+.main-text h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.main-text p {
+  font-size: 1rem;
+
   
-  @media (min-width: 768px) {
-    .homepage-main {
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-    }
-  }
-  
-  .main-text {
-    max-width: 500px;
-  }
-  
-  .main-text h1 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-  }
-  
-  .main-text p {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  .main-image img {
-    width: 100%;
-    max-width: 400px;
-  }
+}
+
+.main-image img {
+  width: 100%;
+  max-width: 500px;
+  padding-bottom: 300px;
+  margin-top: 5rem;
+}
