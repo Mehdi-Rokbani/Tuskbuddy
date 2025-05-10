@@ -35,8 +35,33 @@ const getProjectsByMemberId = async (req, res) => {
         res.status(500).json({ message: 'Error fetching projects by member.', error: error.message });
     }
 };
+const getTeamsByUserId = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const teams = await Team.find({
+            $or: [
+                { ownerId: id },
+                { members: id }
+            ]
+        })
+            .populate('projectId')  // optional: populate project details
+            .populate('ownerId')    // optional: populate owner details
+            .populate('members');   // optional: populate member details
+
+        if (!teams || teams.length === 0) {
+            return res.status(404).json({ message: 'No teams found for this user.' });
+        }
+
+        res.status(200).json(teams);
+    } catch (err) {
+        console.error('Error fetching teams:', err);
+        res.status(500).json({ message: 'Server error while retrieving teams.' });
+    }
+};
 
 module.exports = {
+    getTeamsByUserId,
     removeMemberFromTeam,
     getProjectsByMemberId,
 };

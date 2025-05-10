@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import ProjectCard from '../components/Projectcard';
+import ProjectCard0 from '../components/Projectcard0';
 import Header from '../components/Header';
 import '../assets/style/Header.css';
 import '../assets/style/AllProjects.css';
@@ -42,7 +42,7 @@ const AllProjects = () => {
                 ) : (
                     <div className="projects-grid">
                         {projects.map((projet) => (
-                           <ProjectCard
+                           <ProjectCard0
                            key={projet._id}
                                project={projet}
                                onUpdated={fetchProjects}

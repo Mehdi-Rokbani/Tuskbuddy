@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
 import { AuthContext } from '../context/AuthContext';
 const Sidebar = ({ onClose }) => {
-    const {user}=useContext(AuthContext)
+    const { user } = useContext(AuthContext)
     return (
         <div className="sidebar">
 
@@ -13,10 +13,10 @@ const Sidebar = ({ onClose }) => {
             <ul className="menu">
 
                 <Link to='/'><li>Home</li></Link>
-{user.user.role==='freelancer' &&(<Link to='/teams'><li>My Projects</li></Link>)}
-{user.user.role==='client' &&(<Link to='/myproject'><li>My Projects</li></Link>)}
-   
-                <li>Teams</li>
+                {user?.user?.role === 'freelancer' && (<Link to='/teams'><li>My Projects</li></Link>)}
+                {user?.user?.role === 'client' && (<Link to='/myproject'><li>My Projects</li></Link>)}
+                {user?.user?.role === 'freelancer' && (<Link to='/tasks'><li>tasks</li></Link>)}
+                {user?.user?.role === 'client' && (<Link to='/tt'><li>Teams</li></Link>)}
 
                 <Link to='/projectfrom'><li>Add Project</li></Link>
             </ul>

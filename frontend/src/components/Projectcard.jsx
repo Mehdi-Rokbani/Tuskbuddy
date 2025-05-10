@@ -48,39 +48,35 @@ const ProjectCard = ({ project, onUpdated }) => {
 
     return (
         <>
-            <div className="project-card">
-                <Link to={`/project/${project._id}`}>
-                    <div className="quote-title-container">
-                        <div className="quote">❝</div>
-                        <div className='title'>{project.title}</div>
-                    </div>
-                    <p className="description">{project.description}</p>
-                    <hr />
-                    {owner ? (
-                        <>
-                            <h3 className="author">{owner.username}</h3>
-                            <p className="role">{owner.role}</p>
-                        </>
-                    ) : (
-                        <p>Loading user...</p>
-                    )}
-                </Link>
 
-                {user?.user?._id === project.client && (
-                    <div className="card-actions">
-                        <button onClick={() => setShowUpdateModal(true)} className="update-btn">Update</button>
-                        <button onClick={handleDelete} className="delete-btn">Delete</button>
-                    </div>
-                )}
+            <div class="card">
+                <div class="card-details">
+                    <p class="text-title">{project.title}</p>
+                    <p class="text-body">{project.description}</p>
+
+
+                    {user?.user?._id === project.client && (
+                        <div className="card-actions">
+                            <button onClick={() => setShowUpdateModal(true)} className="update-btn">Update</button>
+                            <button onClick={handleDelete} className="delete-btn">Delete</button>
+
+                        </div>
+                    )}
+                </div>
+                <Link to={`/project/${project._id}`}><button class="card-button">More info</button></Link>
             </div>
 
             {showUpdateModal && (
                 <UpdateProjectModal
                     project={project}
                     onClose={() => setShowUpdateModal(false)}
-                    onUpdate={onUpdated} // Triggers refetch after patch
+                    onUpdate={onUpdated}
                 />
             )}
+
+
+
+
         </>
     );
 };

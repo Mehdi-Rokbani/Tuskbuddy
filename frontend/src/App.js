@@ -11,6 +11,9 @@ import { AuthContext } from './context/AuthContext';
 import { useContext } from 'react';
 import UserProjectsPage from './pages/MyProjects';
 import ProfileUpdate from './pages/ProfileUpdate';
+import TeamTable from './pages/TeamTable';
+import FreelancerTasks from './pages/FreelancerTasks';
+
 import { ToastContainer, toast } from 'react-toastify';
 
 import 'react-toastify/dist/ReactToastify.css';
@@ -36,8 +39,11 @@ function App() {
           {!user && (<Route path='/teams' element={<Login />}></Route>)}
           {user && (<Route path='/allprojects' element={<AllProjects />}></Route>)}
           {!user && (<Route path='/allprojects' element={<Login />}></Route>)}
+          {user && (<Route path='/tt' element={<TeamTable />}></Route>)}
+          {!user && (<Route path='/tt' element={<Login />}></Route>)}
 
-
+          {user && (<Route path='/tasks' element={<FreelancerTasks />}></Route>)}
+          {!user && (<Route path='/tasks' element={<Login />}></Route>)}
         </Routes>
       </BrowserRouter>
       <ToastContainer />

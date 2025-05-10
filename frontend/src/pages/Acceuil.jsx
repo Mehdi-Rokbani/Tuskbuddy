@@ -37,7 +37,7 @@ export default function Acceuil() {
 
           <div className="main-image">
             <img
-              src="/taskbuddy-illustration.png.avif"
+              src="tswra2.png"
               alt="Team collaboration illustration"
             />
           </div>
