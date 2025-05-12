@@ -1,5 +1,5 @@
 // controllers/requestController.js
-const project=require('../models/Project.js')
+const project = require('../models/Project.js')
 const Request = require('../models/Request');
 const Team = require('../models/Team');
 
@@ -126,11 +126,28 @@ const deleteRequest = async (req, res) => {
     }
 };
 
+
+const getFreelancerRequests = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+
+        const requests = await Request.find({ userId })
+            .populate('projectId', 'title description')
+            .populate('ownerId', 'username email')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json(requests);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // Export all at the bottom
 module.exports = {
     createRequest,
     getOwnerRequests,
     acceptRequest,
     rejectRequest,
-    deleteRequest
+    deleteRequest,
+    getFreelancerRequests
 };

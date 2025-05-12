@@ -6,7 +6,6 @@ import Header from '../components/Header';
 import '../assets/style/Header.css';
 import { AuthContext } from '../context/AuthContext';
 
-
 const ProjectDetails = () => {
     const { id } = useParams();
     const [project, setProject] = useState(null);
@@ -16,6 +15,7 @@ const ProjectDetails = () => {
 
     const { user } = useContext(AuthContext);
     const userId = user?.user?._id;
+    const userRole = user?.user?.role;
 
     useEffect(() => {
         const fetchProject = async () => {
@@ -64,48 +64,111 @@ const ProjectDetails = () => {
         setShowJoinForm(true);
     };
 
-    if (!project || !owner) return <p>Loading...</p>;
+    const formatDate = (dateString) => {
+        try {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        } catch {
+            return 'Invalid Date';
+        }
+    };
+
+    if (!project || !owner) return (
+        <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>Loading project details...</p>
+        </div>
+    );
+
+    // Check if user can join (not a client, not the owner, not already a member, and there are spots available)
+    const canJoin = userRole !== 'client' && owner._id !== userId && !isMember && project.nbmembers > 0;
 
     return (
         <>
             <div className='header'>
                 <Header />
             </div>
-            <div className='container0'>
+            <div className='project-details-page'>
                 <div className="project-details-container">
-                    <div className="project-info">
-                        <h2>{project.title}</h2>
-                        <p><strong>Description:</strong> {project.description}</p>
-                        <p><strong>Technologies Used:</strong> {project.techused}</p>
-                        <p><strong>Members Needed:</strong> {project.nbmembers}</p>
-                        <p><strong>Deadline:</strong> {new Date(project.deadline).toLocaleDateString()}</p>
-                    </div>
-                    <div className="owner-info">
-                        <h3>Owner Info</h3>
-                        <p><strong>Name:</strong> {owner.username}</p>
-                        <p><strong>Email:</strong> {owner.email}</p>
-                        <p><strong>Role:</strong> {owner.role}</p>
-                    </div>
-                </div>
-
-                {(owner._id !== userId && !showJoinForm && project.nbmembers > 0 && !isMember) && (
-                    <button className="join-project-button" onClick={handleJoinClick}>
-                        Join the Project
-                    </button>
-                )}
-
-                {showJoinForm && !isMember && (
-                    <div className="modal-overlay">
-                        <div className="modal-content">
-                            <button className="close-button" onClick={() => setShowJoinForm(false)}>×</button>
-                            <JoinForm
-                                projectId={project._id}
-                                userId={userId}
-                                ownerId={owner._id}
-                            />
+                    <div className="project-header">
+                        <h1>{project.title}</h1>
+                        <div className="project-status">
+                            <span className={`status-badge ${project.nbmembers > 0 ? 'open' : 'full'}`}>
+                                {project.nbmembers > 0 ? 'Recruiting' : 'Team Full'}
+                            </span>
                         </div>
                     </div>
-                )}
+
+                    <div className="project-content">
+                        <div className="project-info">
+                            <div className="info-card">
+                                <h2>Project Details</h2>
+                                <div className="info-item">
+                                    <span className="label">Description</span>
+                                    <p className="value">{project.description}</p>
+                                </div>
+                                <div className="info-grid">
+                                    <div className="info-item">
+                                        <span className="label">Technologies</span>
+                                        <div className="tech-tags">
+                                            {project.techused?.split(',').map((tech, index) => (
+                                                <span key={index} className="tech-tag">{tech.trim()}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="info-item">
+                                        <span className="label">Members Needed</span>
+                                        <span className="value highlight">{project.nbmembers}</span>
+                                    </div>
+                                    <div className="info-item">
+                                        <span className="label">Deadline</span>
+                                        <span className="value">{formatDate(project.deadline)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="owner-info">
+                            <div className="info-card">
+                                <h2>Project Owner</h2>
+                                <div className="owner-profile">
+                                    <div className="avatar">
+                                        {owner.username.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div className="owner-details">
+                                        <h3>{owner.username}</h3>
+                                        <p><i className="far fa-envelope"></i> {owner.email}</p>
+                                        <p><i className="fas fa-user-tag"></i> {owner.role}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {canJoin && !showJoinForm && (
+                        <div className="action-container">
+                            <button className="join-project-button" onClick={handleJoinClick}>
+                                Join the Project
+                            </button>
+                        </div>
+                    )}
+
+                    {showJoinForm && (
+                        <div className="modal-overlay">
+                            <div className="modal-content">
+                                <button className="close-button" onClick={() => setShowJoinForm(false)}>×</button>
+                                <JoinForm
+                                    projectId={project._id}
+                                    userId={userId}
+                                    ownerId={owner._id}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </>
     );

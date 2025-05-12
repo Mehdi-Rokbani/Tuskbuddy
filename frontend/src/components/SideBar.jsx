@@ -11,15 +11,14 @@ const Sidebar = ({ onClose }) => {
 
             <h1 className="logo" onClick={onClose}> <FontAwesomeIcon icon={faBars} onClick={onClose} className="bar" />TaskBuddy</h1>
             <ul className="menu">
-
                 <Link to='/'><li>Home</li></Link>
-                {user?.user?.role === 'freelancer' && (<Link to='/teams'><li>My Projects</li></Link>)}
+                {user?.user?.role === 'freelancer' && (<Link to='/freereq'><li>My requests</li></Link>)}
                 {user?.user?.role === 'client' && (<Link to='/myproject'><li>My Projects</li></Link>)}
                 {user?.user?.role === 'freelancer' && (<Link to='/tasks'><li>tasks</li></Link>)}
                 {user?.user?.role === 'client' && (<Link to='/tt'><li>Teams</li></Link>)}
-
-                <Link to='/projectfrom'><li>Add Project</li></Link>
+                {user?.user?.role === 'client' && (<Link to='/projectfrom'><li>Add Project</li></Link>)}
             </ul>
+
         </div>
     );
 };

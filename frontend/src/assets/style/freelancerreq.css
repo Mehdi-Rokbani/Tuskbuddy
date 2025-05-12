@@ -1,0 +1,220 @@
+/* FreelancerRequests.css */
+
+.requests-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px;
+    font-family: Arial, sans-serif;
+}
+
+.requests-container h1 {
+    color: white;
+    margin-bottom: 24px;
+    font-size: 28px;
+    border-bottom: 2px solid #eaeaea;
+    padding-bottom: 12px;
+}
+
+.no-requests {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    font-size: 16px;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+}
+
+.requests-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.request-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border: 1px solid #eaeaea;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.request-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.request-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #eaeaea;
+    padding-bottom: 12px;
+}
+
+.request-header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: #0a2158;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.status-accepted {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-rejected {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.request-details {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.request-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.request-info p {
+    margin: 8px 0;
+    font-size: 14px;
+    color: #495057;
+}
+
+.request-about {
+    background-color: #f8f9fa;
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 8px;
+}
+
+.request-about h4 {
+    margin: 0 0 8px;
+    color: #0a2158;
+    font-size: 16px;
+}
+
+.request-about p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #495057;
+}
+
+.request-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #eaeaea;
+}
+
+.request-actions button,
+.request-actions a {
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.delete-btn {
+    background-color: #ffffff;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+.delete-btn:hover {
+    background-color: #dc3545;
+    color: #ffffff;
+}
+
+.view-project-btn {
+    background-color: #0a2158;
+    color: #ffffff;
+    border: 1px solid #0a2158;
+}
+
+.view-project-btn:hover {
+    background-color: #07163d;
+}
+
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    font-size: 18px;
+    color: #6c757d;
+}
+
+.error-message {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.error-message h3 {
+    margin-top: 0;
+}
+
+.error-message button {
+    background-color: #0a2158;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 12px;
+}
+
+.error-message button:hover {
+    background-color: #07163d;
+}
+
+@media (max-width: 768px) {
+    .request-info {
+        grid-template-columns: 1fr;
+    }
+
+    .request-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .status-badge {
+        align-self: flex-start;
+    }
+}

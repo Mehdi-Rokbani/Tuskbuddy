@@ -1,106 +1,251 @@
-body {
-    background-color: #0f2d62;
-}
-
-.container0 {
-    max-width: 1000px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background: #f9f9f9;
-    border-radius: 15px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-
+/* ProjectDetails.css */
+.project-details-page {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem;
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 60px);
 }
 
 .project-details-container {
+    width: 100%;
+    max-width: 1200px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+    position: relative;
+}
+
+.project-header {
     display: flex;
     justify-content: space-between;
-    padding: 40px;
-    gap: 50px;
-}
-
-.project-info,
-.owner-info {
-    flex: 1;
-    background: #f9f9f9;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    height: 300px;
-}
-
-.project-info h2 {
-    margin-bottom: 20px;
-}
-
-.owner-info h3 {
-    margin-bottom: 15px;
-}
-
-p {
-    margin: 10px 0;
-    font-size: 16px;
-}
-
-
-
-.project-info,
-.owner-info {
+    align-items: center;
     margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
 }
 
-.project-info h2,
-.owner-info h3 {
-    color: #003366;
+.project-header h1 {
+    font-size: 2rem;
+    color: #0a4275;
+    margin: 0;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 50px;
+}
+
+.status-badge.open {
+    background-color: #e1f5fe;
+    color: #0277bd;
+}
+
+.status-badge.full {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.project-content {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 2rem;
+}
+
+.info-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+    height: 100%;
+}
+
+.info-card h2 {
+    margin-top: 0;
+    font-size: 1.25rem;
+    color: #0a4275;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e1f5fe;
+}
+
+.info-item {
+    margin-bottom: 1.25rem;
+}
+
+.info-item .label {
+    display: block;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.info-item .value {
+    color: #212529;
+    line-height: 1.6;
+}
+
+.info-item .highlight {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #0a4275;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.tech-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tech-tag {
+    background-color: #e9ecef;
+    border-radius: 4px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    color: #495057;
+}
+
+.owner-profile {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0;
+}
+
+.avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #0a4275;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-right: 1rem;
+}
+
+.owner-details h3 {
+    margin: 0 0 0.5rem 0;
+    color: #212529;
+}
+
+.owner-details p {
+    margin: 0.25rem 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.action-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
 }
 
 .join-project-button {
-    background-color: #003366;
-    color: #fff;
+    background-color: #0a4275;
+    color: white;
     border: none;
-    padding: 1rem 2rem;
-    border-radius: 15px;
-    font-size: 1.2rem;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.3s;
-    display: block;
-    margin: 0 auto;
+    transition: background-color 0.2s ease;
 }
 
 .join-project-button:hover {
-    background-color: #001f4d;
+    background-color: #083058;
 }
 
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    right: 0;
+    bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 999;
+    z-index: 1000;
 }
 
 .modal-content {
-    
-    padding: 2rem;
+    background-color: white;
     border-radius: 8px;
-    position: relative;
+    padding: 2rem;
     width: 90%;
     max-width: 500px;
-    
+    position: relative;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
 }
 
 .close-button {
     position: absolute;
-    top: 10px;
-    right: 14px;
-    font-size: 24px;
+    top: 1rem;
+    right: 1rem;
     background: none;
     border: none;
+    font-size: 1.5rem;
     cursor: pointer;
-    color: white;
+    color: #6c757d;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.loading-spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border-left-color: #0a4275;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .project-content {
+        grid-template-columns: 1fr;
+    }
+
+    .project-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .project-header h1 {
+        margin-bottom: 1rem;
+    }
 }

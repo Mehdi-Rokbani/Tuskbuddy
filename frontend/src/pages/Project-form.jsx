@@ -13,10 +13,13 @@ const CreateProjectForm = () => {
     const [techused, setTechused] = useState('');
     const [description, setDescription] = useState('');
     const [error, setError] = useState(null);
-    const navigate=useNavigate()
+    const navigate = useNavigate()
+
+    if (user?.user?.role === 'client') { navigate('/login') }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
 
         const projectData = {
             title,
@@ -49,8 +52,8 @@ const CreateProjectForm = () => {
             setDeadline('');
             setTechused('');
             setDescription('');
-            navigate('/myproject')
-            
+             navigate('/myproject')
+
         }
     };
 

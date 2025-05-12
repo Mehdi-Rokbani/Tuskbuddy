@@ -4,7 +4,7 @@ import SignupForm from './pages/Signup';
 import Login from './pages/Login';
 import CreateProjectForm from './pages/Project-form';
 import ProjectDetails from './pages/ProjectDetails';
-import MyTeamProjects from './pages/TeamProjects';
+
 import AllProjects from './pages/AllProjects';
 
 import { AuthContext } from './context/AuthContext';
@@ -13,6 +13,7 @@ import UserProjectsPage from './pages/MyProjects';
 import ProfileUpdate from './pages/ProfileUpdate';
 import TeamTable from './pages/TeamTable';
 import FreelancerTasks from './pages/FreelancerTasks';
+import FreelancerRequests from './pages/freelancerreq';
 
 import { ToastContainer, toast } from 'react-toastify';
 
@@ -24,6 +25,7 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
+          <Route path='/acceuil' element={<Acceuil />}></Route>
           <Route path='/' element={<Acceuil />}></Route>
           <Route path='/Sign-up' element={<SignupForm />}></Route>
           <Route path='/login' element={<Login />}></Route>
@@ -35,8 +37,7 @@ function App() {
           {!user && (<Route path='/myproject' element={<Login />}></Route>)}
           {user && (<Route path='/info' element={<ProfileUpdate />}></Route>)}
           {!user && (<Route path='/info' element={<Login />}></Route>)}
-          {user && (<Route path='/teams' element={<MyTeamProjects />}></Route>)}
-          {!user && (<Route path='/teams' element={<Login />}></Route>)}
+
           {user && (<Route path='/allprojects' element={<AllProjects />}></Route>)}
           {!user && (<Route path='/allprojects' element={<Login />}></Route>)}
           {user && (<Route path='/tt' element={<TeamTable />}></Route>)}
@@ -44,6 +45,10 @@ function App() {
 
           {user && (<Route path='/tasks' element={<FreelancerTasks />}></Route>)}
           {!user && (<Route path='/tasks' element={<Login />}></Route>)}
+
+          {user && (<Route path='/freereq' element={<FreelancerRequests />}></Route>)}
+          {!user && (<Route path='/freereq' element={<Login />}></Route>)}
+
         </Routes>
       </BrowserRouter>
       <ToastContainer />

@@ -5,6 +5,9 @@ import '../assets/style/TeamTable.css';
 import { AuthContext } from '../context/AuthContext';
 import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 const TeamTable = () => {
     const navigate = useNavigate();
     const { user } = useContext(AuthContext);
@@ -20,6 +23,7 @@ const TeamTable = () => {
     });
     const [memberTasks, setMemberTasks] = useState({});
     const [isLoading, setIsLoading] = useState(true);
+    const [confirmRemove, setConfirmRemove] = useState(null); // State to track which member to remove
 
     // Status options for tasks - matching your backend options
     const taskStatusOptions = ['pending', 'in progress', 'completed'];
@@ -136,18 +140,11 @@ const TeamTable = () => {
             setShowTaskFormFor(null);
 
             // Show success notification
-            const notification = document.createElement('div');
-            notification.className = 'success-notification';
-            notification.textContent = 'Task assigned successfully!';
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 3000);
+            toast.success('Task assigned successfully!');
 
         } catch (err) {
             console.error(err);
-            alert(`Error assigning task: ${err.message}`);
+            toast.error(`Error assigning task: ${err.message}`);
         }
     };
 
@@ -180,18 +177,11 @@ const TeamTable = () => {
             }));
 
             // Show success notification
-            const notification = document.createElement('div');
-            notification.className = 'success-notification';
-            notification.textContent = 'GitHub URL updated successfully!';
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 3000);
+            toast.success('GitHub URL updated successfully!');
 
         } catch (err) {
             console.error('Error updating GitHub URL:', err);
-            alert(`Failed to update GitHub URL: ${err.message}`);
+            toast.error(`Failed to update GitHub URL: ${err.message}`);
         }
     };
 
@@ -230,18 +220,46 @@ const TeamTable = () => {
             }));
 
             // Show success notification
-            const notification = document.createElement('div');
-            notification.className = 'success-notification';
-            notification.textContent = isApproved ? 'Task approved successfully!' : 'Task rejected!';
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 3000);
+            toast.success(isApproved ? 'Task approved successfully!' : 'Task rejected!');
 
         } catch (err) {
             console.error('Error verifying task:', err);
-            alert(`Failed to verify task: ${err.message}`);
+            toast.error(`Failed to verify task: ${err.message}`);
+        }
+    };
+
+    // New function to remove a team member
+    const removeMember = async (teamId, memberId, memberName) => {
+        try {
+            const res = await fetch(`/teams/remove/${teamId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ memberId })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.message || 'Failed to remove member');
+            }
+
+            // Update local state by removing the member from the team
+            setOwnedTeams(prevTeams =>
+                prevTeams.map(team =>
+                    team._id === teamId
+                        ? { ...team, members: team.members.filter(member => member._id !== memberId) }
+                        : team
+                )
+            );
+
+            // Reset confirmation state
+            setConfirmRemove(null);
+
+            // Show success notification
+            toast.success(`${memberName} has been removed from the team`);
+
+        } catch (err) {
+            console.error('Error removing member:', err);
+            toast.error(`Failed to remove member: ${err.message}`);
         }
     };
 
@@ -267,6 +285,17 @@ const TeamTable = () => {
     return (
         <>
             <div className='header'> <Header /></div>
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
 
             <div className="user-table-container">
                 {ownedTeams.map(team => (
@@ -375,13 +404,40 @@ const TeamTable = () => {
                                                         </td>
                                                         {/* Show assign task button only in the first row */}
                                                         {taskIdx === 0 ? (
-                                                            <td rowSpan={memberTaskList.length}>
-                                                                <button
-                                                                    className="assign-btn"
-                                                                    onClick={() => toggleTaskForm(member._id)}
-                                                                >
-                                                                    Assign Task
-                                                                </button>
+                                                            <td rowSpan={memberTaskList.length} className="action-cell">
+                                                                <div className="action-buttons">
+                                                                    <button
+                                                                        className="assign-btn"
+                                                                        onClick={() => toggleTaskForm(member._id)}
+                                                                    >
+                                                                        Assign Task
+                                                                    </button>
+
+                                                                    {confirmRemove === member._id ? (
+                                                                        <div className="remove-confirmation">
+                                                                            <p>Are you sure?</p>
+                                                                            <button
+                                                                                className="confirm-remove-btn"
+                                                                                onClick={() => removeMember(team._id, member._id, member.username)}
+                                                                            >
+                                                                                Yes
+                                                                            </button>
+                                                                            <button
+                                                                                className="cancel-remove-btn"
+                                                                                onClick={() => setConfirmRemove(null)}
+                                                                            >
+                                                                                No
+                                                                            </button>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <button
+                                                                            className="remove-btn"
+                                                                            onClick={() => setConfirmRemove(member._id)}
+                                                                        >
+                                                                            Remove
+                                                                        </button>
+                                                                    )}
+                                                                </div>
                                                             </td>
                                                         ) : null}
                                                     </tr>
@@ -399,13 +455,40 @@ const TeamTable = () => {
                                                     <td>—</td>
                                                     <td>—</td>
                                                     <td>—</td>
-                                                    <td>
-                                                        <button
-                                                            className="assign-btn"
-                                                            onClick={() => toggleTaskForm(member._id)}
-                                                        >
-                                                            Assign Task
-                                                        </button>
+                                                    <td className="action-cell">
+                                                        <div className="action-buttons">
+                                                            <button
+                                                                className="assign-btn"
+                                                                onClick={() => toggleTaskForm(member._id)}
+                                                            >
+                                                                Assign Task
+                                                            </button>
+
+                                                            {confirmRemove === member._id ? (
+                                                                <div className="remove-confirmation">
+                                                                    <p>Are you sure?</p>
+                                                                    <button
+                                                                        className="confirm-remove-btn"
+                                                                        onClick={() => removeMember(team._id, member._id, member.username)}
+                                                                    >
+                                                                        Yes
+                                                                    </button>
+                                                                    <button
+                                                                        className="cancel-remove-btn"
+                                                                        onClick={() => setConfirmRemove(null)}
+                                                                    >
+                                                                        No
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <button
+                                                                    className="remove-btn"
+                                                                    onClick={() => setConfirmRemove(member._id)}
+                                                                >
+                                                                    Remove
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             )}

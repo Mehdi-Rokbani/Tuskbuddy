@@ -12,7 +12,7 @@ const JoinForm = ({ projectId, userId, ownerId }) => {
   const handleEmailChange = (e) => setEmail(e.target.value);
   const handleSkillsChange = (e) => setSkills(e.target.value);
   const handleAboutChange = (e) => setAbout(e.target.value);
-
+    
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);

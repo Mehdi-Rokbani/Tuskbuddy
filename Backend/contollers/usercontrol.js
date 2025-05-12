@@ -115,6 +115,7 @@ const oneUser = async (req, res) => {
 //update user
 const updateuser = async (req, res) => {
     const { id } = req.params;
+    const { password } = req.body;
 
     // Check if the ID is a valid MongoDB ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -122,17 +123,33 @@ const updateuser = async (req, res) => {
     }
 
     try {
-        const updatedUser = await user.findByIdAndUpdate(
-            id,
-            { ...req.body },
-            { new: true, runValidators: true }
-        );
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const updatedUser = await user.findByIdAndUpdate(
+                id,
+                { password: hashedPassword },
+                { new: true, runValidators: true }
+            );
+            if (!updatedUser) {
+                return res.status(404).json({ message: "User not found" });
+            }
 
-        if (!updatedUser) {
-            return res.status(404).json({ message: "User not found" });
+            res.status(200).json(updatedUser);
+        }
+        else {
+            const updatedUser = await user.findByIdAndUpdate(
+                id,
+                { ...req.body },
+                { new: true, runValidators: true }
+            );
+            if (!updatedUser) {
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            res.status(200).json(updatedUser);
         }
 
-        res.status(200).json(updatedUser);
+
     } catch (error) {
         res.status(500).json({ message: "Error updating user", error: error.message });
     }

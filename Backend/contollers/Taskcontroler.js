@@ -174,6 +174,7 @@ const getUserTasks = async (req, res) => {
 
         const tasks = await Task.find({ assignedTo: userId })
             .populate("createdBy", "username email")
+            .populate("projectId", "title description") // Added population for project data
             .sort({ createdAt: -1 });
 
         res.status(200).json({

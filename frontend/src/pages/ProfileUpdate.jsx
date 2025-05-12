@@ -1,21 +1,18 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { useEffect } from "react";
 import Header from "../components/Header";
+import { toast } from "react-toastify";
 import '../assets/style/Header.css';
 import '../assets/style/Profile.css';
-import { toast } from "react-toastify";
 
 const ProfileUpdate = () => {
-    const { user } = useContext(AuthContext);
-    const { dispatch } = useContext(AuthContext)
-
+    const { user, dispatch } = useContext(AuthContext);
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [skills, setSkills] = useState([]);
     const [password, setPassword] = useState("");
-
     const [editingField, setEditingField] = useState(null);
+    
     useEffect(() => {
         if (user) {
             setUsername(user?.user?.username || '');
@@ -57,96 +54,132 @@ const ProfileUpdate = () => {
         }
     };
 
+    const cancelEdit = () => {
+        // Reset to original values when canceling edit
+        if (editingField === "username") setUsername(user?.user?.username || '');
+        if (editingField === "email") setEmail(user?.user?.email || '');
+        if (editingField === "skills") setSkills(user?.user?.skills ? user?.user?.skills.join(', ') : '');
+        if (editingField === "password") setPassword("");
+        setEditingField(null);
+    };
+
     return (
-        <>
-            <div className="header">
-                <Header />
+        <div className="profile-page">
+            <Header />
+            
+            <div className="profile-container">
+                <div className="profile-header">
+                    <div className="profile-avatar">
+                        {username.charAt(0).toUpperCase()}
+                    </div>
+                    <h1>Your Profile</h1>
+                </div>
+
+                <div className="profile-card">
+                    <div className="profile-field">
+                        <div className="field-label">Username</div>
+                        <div className="field-content">
+                            {editingField === "username" ? (
+                                <div className="edit-mode">
+                                    <input
+                                        type="text"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        placeholder="Enter username"
+                                    />
+                                    <div className="button-group">
+                                        <button className="save-btn" onClick={() => handleSave("username", username)}>Save</button>
+                                        <button className="cancel-btn" onClick={cancelEdit}>Cancel</button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="display-mode">
+                                    <span>{username}</span>
+                                    <button className="edit-btn" onClick={() => setEditingField("username")}>Edit</button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="profile-field">
+                        <div className="field-label">Email</div>
+                        <div className="field-content">
+                            {editingField === "email" ? (
+                                <div className="edit-mode">
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="Enter email"
+                                    />
+                                    <div className="button-group">
+                                        <button className="save-btn" onClick={() => handleSave("email", email)}>Save</button>
+                                        <button className="cancel-btn" onClick={cancelEdit}>Cancel</button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="display-mode">
+                                    <span>{email}</span>
+                                    <button className="edit-btn" onClick={() => setEditingField("email")}>Edit</button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="profile-field">
+                        <div className="field-label">Skills</div>
+                        <div className="field-content">
+                            {editingField === "skills" ? (
+                                <div className="edit-mode">
+                                    <input
+                                        type="text"
+                                        value={skills}
+                                        onChange={(e) => setSkills(e.target.value)}
+                                        placeholder="Enter skills (comma separated)"
+                                    />
+                                    <div className="button-group">
+                                        <button className="save-btn" onClick={() => handleSave("skills", skills)}>Save</button>
+                                        <button className="cancel-btn" onClick={cancelEdit}>Cancel</button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="display-mode">
+                                    <span className="skills-display">
+                                        
+                                    </span>
+                                    <button className="edit-btn" onClick={() => setEditingField("skills")}>Edit</button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="profile-field">
+                        <div className="field-label">Password</div>
+                        <div className="field-content">
+                            {editingField === "password" ? (
+                                <div className="edit-mode">
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="Enter new password"
+                                    />
+                                    <div className="button-group">
+                                        <button className="save-btn" onClick={() => handleSave("password", password)}>Save</button>
+                                        <button className="cancel-btn" onClick={cancelEdit}>Cancel</button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="display-mode">
+                                    <span>••••••••</span>
+                                    <button className="edit-btn" onClick={() => setEditingField("password")}>Change</button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <div className="profile">
-                <h2>Your Profile</h2>
-
-                {/* Username Field */}
-                <div className="field-row">
-                    <label>Username:</label>
-                    {editingField === "username" ? (
-                        <>
-                            <input
-                                type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                            />
-                            <button onClick={() => handleSave("username", username)}>Save</button>
-                        </>
-                    ) : (
-                        <>
-                            <span>{username}</span>
-                            <button onClick={() => setEditingField("username")}>Edit</button>
-                        </>
-                    )}
-                </div>
-
-                {/* Email Field */}
-                <div className="field-row">
-                    <label>Email:</label>
-                    {editingField === "email" ? (
-                        <>
-                            <input
-                                type="text"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-                            <button onClick={() => handleSave("email", email)}>Save</button>
-                        </>
-                    ) : (
-                        <>
-                            <span>{email}</span>
-                            <button onClick={() => setEditingField("email")}>Edit</button>
-                        </>
-                    )}
-                </div>
-
-                {/* Skills Field */}
-                <div className="field-row">
-                    <label>Skills:</label>
-                    {editingField === "skills" ? (
-                        <>
-                            <input
-                                type="text"
-                                value={skills}
-                                onChange={(e) => setSkills(e.target.value)}
-                            />
-                            <button onClick={() => handleSave("skills", skills)}>Save</button>
-                        </>
-                    ) : (
-                        <>
-                            <span>{skills}</span>
-                            <button onClick={() => setEditingField("skills")}>Edit</button>
-                        </>
-                    )}
-                </div>
-
-                {/* Password Field */}
-                <div className="field-row">
-                    <label>Password:</label>
-                    {editingField === "password" ? (
-                        <>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                            <button onClick={() => handleSave("password", password)}>Save</button>
-                        </>
-                    ) : (
-                        <>
-                            <span>••••••</span>
-                            <button onClick={() => setEditingField("password")}>Edit</button>
-                        </>
-                    )}
-                </div>
-            </div>
-        </>
+        </div>
     );
 };
 

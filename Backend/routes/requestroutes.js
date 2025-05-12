@@ -5,7 +5,8 @@ const {
     acceptRequest,
     rejectRequest,
     createRequest,
-    getOwnerRequests
+    getOwnerRequests,
+    getFreelancerRequests
 
 } = require('../contollers/requestcontrol')
 
@@ -14,5 +15,6 @@ router.get('/:ownerId', getOwnerRequests);
 router.put('/accept/:requestId', acceptRequest);
 router.put('/reject/:requestId', rejectRequest);
 router.delete('/:requestId', deleteRequest);
+router.get('/freelancer/:userId',  getFreelancerRequests);
 
 module.exports = router

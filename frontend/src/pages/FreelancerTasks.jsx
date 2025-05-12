@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import '../assets/style/FreelancerTasks.css';
 import Header from '../components/Header';
 
@@ -83,21 +85,28 @@ const FreelancerTasks = () => {
           task._id === taskId ? { ...task, githubUrl: githubUrls[taskId] } : task
         ));
 
-        // Show success notification
-        const notification = document.createElement('div');
-        notification.className = 'success-notification';
-        notification.textContent = 'GitHub URL submitted successfully!';
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 3000);
+        // Show success toast notification
+        toast.success('GitHub URL submitted successfully!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        });
       } else {
         throw new Error(data.message || 'Failed to update GitHub URL');
       }
     } catch (err) {
       console.error('Error submitting GitHub URL:', err);
-      alert(`Error: ${err.message}`);
+      toast.error(`Error: ${err.message}`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
     }
   };
 
@@ -125,21 +134,28 @@ const FreelancerTasks = () => {
           task._id === taskId ? { ...task, status: newStatus } : task
         ));
 
-        // Show success notification
-        const notification = document.createElement('div');
-        notification.className = 'success-notification';
-        notification.textContent = 'Task status updated!';
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 3000);
+        // Show success toast notification
+        toast.success('Task status updated!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        });
       } else {
         throw new Error(data.message || 'Failed to update task status');
       }
     } catch (err) {
       console.error('Error updating task status:', err);
-      alert(`Error: ${err.message}`);
+      toast.error(`Error: ${err.message}`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
     }
   };
 
@@ -182,8 +198,11 @@ const FreelancerTasks = () => {
   return (
     <>
       <div className='header'>
-        <Header></Header>
+        <Header />
       </div>
+      {/* Toast Container */}
+      <ToastContainer />
+
       <div className="my-tasks-container">
         <h1 className='white'>My Tasks</h1>
 
@@ -217,7 +236,7 @@ const FreelancerTasks = () => {
                   <strong>Project:</strong> {task.projectId?.title || 'N/A'}
                 </div>
                 <div className="task-due-date">
-                  <strong>Due:</strong> {new Date(task.createdAt).toLocaleDateString()}
+                  <strong>Due:</strong> {new Date(task.dueDate || task.createdAt).toLocaleDateString()}
                 </div>
               </div>
 
