@@ -159,6 +159,12 @@ const updateuser = async (req, res) => {
 //delete user
 const deleteUser = async (req, res) => {
     const { id } = req.params;
+
+    // Validate the ID format first (assuming MongoDB ObjectId)
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: "Invalid user ID format." });
+    }
+
     try {
         // Find and delete the user
         const deletedUser = await user.findByIdAndDelete(id);
@@ -168,9 +174,24 @@ const deleteUser = async (req, res) => {
             return res.status(404).json({ error: "No user found with this ID." });
         }
 
-        res.status(200).json({ message: "User deleted successfully.", user: deletedUser });
+        // Optionally: Clean up any related data (sessions, tokens, etc.)
+        // Example: await Session.deleteMany({ userId: id });
+
+        return res.status(200).json({
+            success: true,
+            message: "User deleted successfully.",
+            data: {
+                userId: deletedUser._id,
+                email: deletedUser.email // or other non-sensitive info
+            }
+        });
     } catch (error) {
-        res.status(500).json({ error: "An error occurred while deleting the user." });
+        console.error("Error deleting user:", error);
+        return res.status(500).json({
+            success: false,
+            error: "An error occurred while deleting the user.",
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 };
 

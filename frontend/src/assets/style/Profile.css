@@ -189,3 +189,84 @@
     align-self: flex-start;
   }
 }
+
+/* Add these styles to your Profile.css file */
+
+.skills-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
+.skills-dropdown {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%;
+}
+
+.selected-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.skill-tag {
+  background-color: #e1ebff;
+  color: #0056b3;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.skill-tag.read-only {
+  padding: 5px 10px;
+}
+
+.remove-skill {
+  background: none;
+  border: none;
+  color: #0056b3;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.remove-skill:hover {
+  color: #003d82;
+}
+
+.no-skills {
+  color: #888;
+  font-style: italic;
+}
+
+.skills-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .skills-selector {
+    flex-direction: column;
+  }
+
+  .skills-dropdown {
+    width: 100%;
+  }
+}

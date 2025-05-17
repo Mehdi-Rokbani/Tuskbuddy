@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 
 import "../assets/style/Login.css";
 import Header from "../components/Header";
@@ -7,23 +7,39 @@ import { useLogin } from "../hooks/useLogin";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const { login, Error, Loading } = useLogin();
-    const {user}=useContext(AuthContext);
-    const navigate=useNavigate();
+    const { user } = useContext(AuthContext);
+    const navigate = useNavigate();
 
-    if(user){
-        navigate('/')
-    }
+    useEffect(() => {
+        if (user) {
+            navigate('/');
+        }
+    }, [user, navigate]);
+
+    useEffect(() => {
+        // Display error toast when Error state changes
+        if (Error) {
+            toast.error(Error, {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true
+            });
+        }
+    }, [Error]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // You can add your login logic here
-        await login(email, password)
-        
-           
+        await login(email, password);
     };
 
     return (
@@ -31,6 +47,7 @@ const Login = () => {
             <div className="header">
                 <Header />
             </div>
+           
             <div className="login-container">
                 <form className="login-box" onSubmit={handleSubmit}>
                     <h2>Log In</h2>
@@ -51,12 +68,13 @@ const Login = () => {
                         required
                     />
 
-                    <button type="submit" disabled={Loading}>Log In</button>
+                    <button type="submit" disabled={Loading}>
+                        {Loading ? "Logging in..." : "Log In"}
+                    </button>
 
                     <p className="signup-text">
-                        Dont have an account? <Link to='/Sign-up'>Sign up</Link>
+                        Don't have an account? <Link to='/Sign-up'>Sign up</Link>
                     </p>
-                    {Error && <div className="error"> {Error}</div>}
                 </form>
             </div>
         </div>

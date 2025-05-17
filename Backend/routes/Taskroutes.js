@@ -5,7 +5,8 @@ const {
     getUserTasks,
     updateTaskStatus,
     updateTaskGithubUrl, // Add new controller functions
-    verifyTask
+    verifyTask,
+    getTasksByUserAndProject
 } = require("../contollers/Taskcontroler");
 
 // Create a new task
@@ -23,5 +24,7 @@ router.patch("/:taskId/github-url", updateTaskGithubUrl);
 
 // Verify task (approve/reject)
 router.patch("/:taskId/verify", verifyTask);
+
+router.get('/user/:userId/project/:projectId',getTasksByUserAndProject);
 
 module.exports = router;

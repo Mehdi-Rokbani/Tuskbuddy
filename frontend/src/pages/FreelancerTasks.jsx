@@ -1,12 +1,17 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { ToastContainer, toast } from 'react-toastify';
+import {  toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../assets/style/FreelancerTasks.css';
 import Header from '../components/Header';
+import { useNavigate } from 'react-router-dom';
 
 const FreelancerTasks = () => {
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+  if (user?.user?.role === 'client') {
+    navigate('/')
+  }
   const userId = user?.user?._id;
 
   const [tasks, setTasks] = useState([]);
@@ -183,88 +188,135 @@ const FreelancerTasks = () => {
       <span className="verification-rejected">Rejected</span>;
   };
 
+  // Render empty state component
+  const EmptyState = () => (
+    <div className="empty-state">
+      <div className="empty-state-icon">
+        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5V7H9V5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M9 12H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M9 16H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+      <h2 className="empty-state-title">No Tasks Assigned Yet</h2>
+      <p className="empty-state-description">
+        You don't have any tasks assigned to you at the moment. Tasks will appear here once a project manager assigns work to you.
+      </p>
+      <div className="empty-state-actions">
+        <button className="refresh-btn" onClick={() => window.location.reload()}>
+          Refresh
+        </button>
+      </div>
+    </div>
+  );
+
   if (isLoading) {
-    return <div className="loading">Loading tasks...</div>;
+    return (
+      <>
+        <div className='header'>
+          <Header />
+        </div>
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading your tasks...</p>
+        </div>
+      </>
+    );
   }
 
   if (error) {
-    return <div className="error">Error: {error}</div>;
-  }
-
-  if (tasks.length === 0) {
-    return <div className="no-tasks">No tasks assigned yet.</div>;
+    return (
+      <>
+        <div className='header'>
+          <Header />
+        </div>
+        <div className="error-container">
+          <div className="error-icon">⚠️</div>
+          <h2>Something went wrong</h2>
+          <p>Error: {error}</p>
+          <button className="retry-btn" onClick={() => window.location.reload()}>
+            Try Again
+          </button>
+        </div>
+      </>
+    );
   }
 
   return (
     <>
+   
+     
       <div className='header'>
         <Header />
       </div>
-      {/* Toast Container */}
-      <ToastContainer />
 
       <div className="my-tasks-container">
         <h1 className='white'>My Tasks</h1>
 
-        <div className="task-list">
-          {tasks.map(task => (
-            <div
-              key={task._id}
-              className={`task-card ${getStatusClass(task.status)}`}
-            >
-              <div className="task-header">
-                <h2 className="task-title">{task.title}</h2>
-                <div className="task-status">
-                  <select
-                    value={task.status}
-                    onChange={(e) => updateTaskStatus(task._id, e.target.value)}
-                    className={getStatusClass(task.status)}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="in progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="task-description">
-                {task.description}
-              </div>
-
-              <div className="task-details">
-                <div className="task-project">
-                  <strong>Project:</strong> {task.projectId?.title || 'N/A'}
-                </div>
-                <div className="task-due-date">
-                  <strong>Due:</strong> {new Date(task.dueDate || task.createdAt).toLocaleDateString()}
-                </div>
-              </div>
-
-              <div className="task-footer">
-                <div className="github-url-section">
-                  <input
-                    type="url"
-                    placeholder="Enter GitHub URL for this task..."
-                    value={githubUrls[task._id] || ''}
-                    onChange={(e) => handleGithubUrlChange(task._id, e.target.value)}
-                  />
-                  <button
-                    className="submit-btn"
-                    onClick={() => submitGithubUrl(task._id)}
-                  >
-                    Submit
-                  </button>
-                </div>
-
-                {task.verified && (
-                  <div className="verification-status">
-                    {getVerificationBadge(task.verified)}
+        {tasks.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className="task-list">
+            {tasks.map(task => (
+              <div
+                key={task._id}
+                className={`task-card ${getStatusClass(task.status)}`}
+              >
+                <div className="task-header">
+                  <h2 className="task-title">{task.title}</h2>
+                  <div className="task-status">
+                    <select
+                      value={task.status}
+                      onChange={(e) => updateTaskStatus(task._id, e.target.value)}
+                      className={getStatusClass(task.status)}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="in progress">In Progress</option>
+                      <option value="completed">Completed</option>
+                    </select>
                   </div>
-                )}
+                </div>
+
+                <div className="task-description">
+                  {task.description}
+                </div>
+
+                <div className="task-details">
+                  <div className="task-project">
+                    <strong>Project:</strong> {task.projectId?.title || 'N/A'}
+                  </div>
+                  <div className="task-due-date">
+                    <strong>Due:</strong> {new Date(task.dueDate || task.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+
+                <div className="task-footer">
+                  <div className="github-url-section">
+                    <input
+                      type="url"
+                      placeholder="Enter GitHub URL for this task..."
+                      value={githubUrls[task._id] || ''}
+                      onChange={(e) => handleGithubUrlChange(task._id, e.target.value)}
+                    />
+                    <button
+                      className="submit-btn"
+                      onClick={() => submitGithubUrl(task._id)}
+                    >
+                      Submit
+                    </button>
+                  </div>
+
+                  {task.verified && (
+                    <div className="verification-status">
+                      {getVerificationBadge(task.verified)}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

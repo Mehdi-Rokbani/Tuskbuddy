@@ -1,29 +1,18 @@
-const project = require('../models/Project');
-const bcrypt = require('bcrypt');
-const validator = require('validator');
-const mongoose = require('mongoose')
+const Project = require('../models/Project');
+const Team=require('../models/Team');
+const Task=require('../models/Tasks')
+const mongoose = require('mongoose');
 
 // Create a new project
 const register = async (req, res) => {
-    const { title, description, client, deadline, nbmembers, techused } = req.body;
-    // Check for missing required fields
-    if (!title) {
-        return res.status(400).json({ error: "Project title is required." });
-    }
-    if (!client) {
-        return res.status(400).json({ error: "Client ID is required." });
-    }
-    if (!deadline) {
-        return res.status(400).json({ error: "Deadline is required." });
-    }
-    if (!description) {
-        return res.status(400).json({ error: "description is required." });
-    }
-    if (!nbmembers) {
-        return res.status(400).json({ error: "members number are required." });
-    }
-    if (!techused) {
-        return res.status(400).json({ error: "technolgies used are required." });
+    const { title, description, client, startDate, deadline, nbmembers, techused } = req.body;
+
+    // Validate required fields
+    const requiredFields = { title, description, client, startDate, deadline, nbmembers, techused };
+    for (const [field, value] of Object.entries(requiredFields)) {
+        if (!value) {
+            return res.status(400).json({ error: `${field} is required.` });
+        }
     }
 
     try {
@@ -32,106 +21,126 @@ const register = async (req, res) => {
             return res.status(400).json({ error: "Invalid client ID format." });
         }
 
-        // Validate deadline
+        // Validate techused is an array with at least one item
+        if (!Array.isArray(techused) || techused.length === 0) {
+            return res.status(400).json({ error: "At least one technology must be specified." });
+        }
+
+        // Validate number of members (between 1 and 20)
+        if (nbmembers < 1 || nbmembers > 20) {
+            return res.status(400).json({ error: "Number of members must be between 1 and 20." });
+        }
+
+        // Validate dates
+        const parsedStartDate = new Date(startDate);
         const parsedDeadline = new Date(deadline);
+        
+        if (isNaN(parsedStartDate.getTime())) {
+            return res.status(400).json({ error: "Invalid start date format. Use YYYY-MM-DD." });
+        }
+
         if (isNaN(parsedDeadline.getTime())) {
             return res.status(400).json({ error: "Invalid deadline format. Use YYYY-MM-DD." });
         }
-        if (parsedDeadline < new Date()) {
-            return res.status(400).json({ error: "Deadline must be a future date." });
+
+        
+        
+
+        // Validate deadline is after start date
+        if (parsedDeadline <= parsedStartDate) {
+            return res.status(400).json({ error: "Deadline must be after the start date." });
         }
 
-        // Create a new project
-        const newProject = await project.create({
+        // Create project
+        const newProject = await Project.create({
             title,
-            description: description || "", // Default to empty string if undefined
+            description,
             client,
+            startDate: parsedStartDate,
             deadline: parsedDeadline,
             techused,
             nbmembers
-
         });
 
-        res.status(201).json({ message: "Project created successfully.", project: newProject });
+        res.status(201).json({ 
+            message: "Project created successfully.", 
+            project: newProject 
+        });
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error("Project creation error:", error);
+        res.status(500).json({ 
+            error: "Server error during project creation.",
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+// Get all projects
+const allProjects = async (req, res) => {
+    try {
+        const projects = await Project.find({})
+            .sort({ createdAt: -1 })
+            .lean();
+
+        if (!projects.length) {
+            return res.status(200).json([]);
+        }
+
+        res.status(200).json(projects);
+    } catch (error) {
+        console.error("Error fetching projects:", error);
+        res.status(500).json({ error: "Server error while fetching projects." });
     }
 };
 
-
-
-
-//get all projects
-const allProjects = async (req, res) => {
-    const projet = await project.find({}).sort({ createdAt: -1 })
-    res.status(200).json({ message: 'all projects', projet })
-    if (!projet) {
-        res.status(400).json({ error: 'there is no projects' })
-    }
-}
-//get one user
+// Get single project
 const oneProject = async (req, res) => {
     const { id } = req.params;
 
-    // Validate ID format
     if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ error: "Invalid Project ID." });
+        return res.status(400).json({ error: "Invalid Project ID format." });
     }
 
     try {
-        // Fetch project by ID
-        const aProject = await project.findById(id);
+        const project = await Project.findById(id).lean();
 
-        // Check if project exists
-        if (!aProject) {
-            return res.status(404).json({ error: "No project found with this ID." });
+        if (!project) {
+            return res.status(404).json({ error: "Project not found." });
         }
 
-        res.status(200).json(aProject);
+        res.status(200).json(project);
     } catch (error) {
-        res.status(500).json({ error: "An error occurred while retrieving the project." });
-    }
-};
-// Search projects by owner (client) ID
-const ProjectOwner = async (req, res) => {
-    const { id } = req.params;
-
-    // Validate ID format
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ error: "Invalid Project ID." });
-    }
-
-    try {
-        // Fetch projects by owner (client) ID
-        const projects = await project.find({ client: id });
-
-        // If no projects found, return an empty array
-        if (!projects || projects.length === 0) {
-            return res.status(200).json([]); // Empty array instead of an error
-        }
-
-        res.status(200).json(projects); // If projects are found, return them
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "An error occurred while retrieving the projects." });
+        console.error("Error fetching project:", error);
+        res.status(500).json({ error: "Server error while fetching project." });
     }
 };
 
-
-//update project
+// Update project
 const updateproject = async (req, res) => {
     const { id } = req.params;
+    const updates = req.body;
 
-    
     if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ error: "Invalid project ID." });
     }
 
     try {
-        
-        const updatedProject = await project.findByIdAndUpdate(
+        // Validate updates if present
+        if (updates.nbmembers && (updates.nbmembers < 1 || updates.nbmembers > 20)) {
+            return res.status(400).json({ error: "Number of members must be between 1 and 20." });
+        }
+
+        if (updates.deadline) {
+            const newDeadline = new Date(updates.deadline);
+            if (isNaN(newDeadline.getTime())) {
+                return res.status(400).json({ error: "Invalid deadline format." });
+            }
+            updates.deadline = newDeadline;
+        }
+
+        const updatedProject = await Project.findByIdAndUpdate(
             id,
-            { ...req.body },
+            updates,
             { new: true, runValidators: true }
         );
 
@@ -142,30 +151,87 @@ const updateproject = async (req, res) => {
         res.status(200).json(updatedProject);
     } catch (error) {
         console.error("Update error:", error);
-        res.status(500).json({ error: "An error occurred while updating the project." });
+        res.status(500).json({ 
+            error: "Server error during update.",
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 };
 
-
-//delete project
+// Delete project
 const deleteProject = async (req, res) => {
     const { id } = req.params;
-    try {
-        // Find and delete the user
-        const deleteProject = await project.findByIdAndDelete(id);
 
-        // Check if the user exists
-        if (!deleteProject) {
-            return res.status(404).json({ error: "No project found with this ID." });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: "Invalid project ID." });
+    }
+
+    try {
+        // Check for associated teams
+        const teamExists = await Team.exists({ projectId: id });
+        if (teamExists) {
+            return res.status(400).json({ 
+                error: "Cannot delete project with active team. Delete the team first." 
+            });
         }
 
-        res.status(200).json({ message: "project deleted successfully.", project: deleteProject });
+        // Check for associated tasks
+        const tasksExist = await Task.exists({ projectId: id });
+        if (tasksExist) {
+            return res.status(400).json({ 
+                error: "Cannot delete project with existing tasks. Delete tasks first." 
+            });
+        }
+
+        const deletedProject = await Project.findByIdAndDelete(id);
+
+        if (!deletedProject) {
+            return res.status(404).json({ error: "Project not found." });
+        }
+
+        res.status(200).json({ 
+            message: "Project deleted successfully.",
+            project: deletedProject 
+        });
     } catch (error) {
-        res.status(500).json({ error: "An error occurred while deleting the project." });
+        console.error("Delete error:", error);
+        res.status(500).json({ 
+            error: "Server error during deletion.",
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 };
-/*const joinProject=async (req,res) =>{
-    const {id,}
-}*/
+// Get projects by owner (client) ID
+const ProjectOwner = async (req, res) => {
+    const { id } = req.params;
 
-module.exports = { register, allProjects, oneProject, deleteProject, updateproject, ProjectOwner };
+    // Validate ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: "Invalid Client ID format." });
+    }
+
+    try {
+        const projects = await Project.find({ client: id })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // Always return an array (empty if no projects)
+        res.status(200).json(projects);
+
+    } catch (error) {
+        console.error("Error fetching owner projects:", error);
+        res.status(500).json({ 
+            error: "Server error while fetching projects.",
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+
+module.exports = { 
+    register, 
+    allProjects, 
+    oneProject, 
+    deleteProject, 
+    updateproject, 
+    ProjectOwner 
+};

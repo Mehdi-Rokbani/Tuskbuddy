@@ -3,44 +3,143 @@ const project = require('../models/Project.js')
 const Request = require('../models/Request');
 const Team = require('../models/Team');
 
-// Create a new join request
 const createRequest = async (req, res) => {
     try {
-        const { projectId, userId, ownerId, skills, about, email } = req.body;
-
-        // Check if a request already exists
-        const existingRequest = await Request.findOne({ projectId, userId });
-
-        if (existingRequest) {
-            return res.status(400).json({ message: 'You have already sent a request for this project.' });
+        // Validate content type
+        if (!req.is('application/json')) {
+            return res.status(415).json({ 
+                error: 'Unsupported Media Type', 
+                message: 'Content-Type must be application/json' 
+            });
         }
 
-        // No existing request, create a new one
-        const newRequest = new Request({
+        const { projectId, userId, ownerId, skills, about, email } = req.body;
+
+        // Validate required fields
+        const missingFields = [];
+        if (!projectId) missingFields.push('projectId');
+        if (!userId) missingFields.push('userId');
+        if (!ownerId) missingFields.push('ownerId');
+        
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                error: 'Missing required fields',
+                message: `The following fields are required: ${missingFields.join(', ')}`,
+                missingFields
+            });
+        }
+
+        // Check project existence and capacity
+        const project0 = await project.findById(projectId);
+        if (!project0) {
+            return res.status(404).json({ 
+                error: 'Not Found', 
+                message: 'Project not found' 
+            });
+        }
+
+        if (project.nbmembers <= 0) {
+            return res.status(403).json({
+                error: 'Team Full',
+                message: 'This project team has reached maximum capacity',
+                capacity: {
+                    maxMembers: project.nbmembers,
+                    availableSpots: 0
+                }
+            });
+        }
+
+        // Check for existing request
+        const existingRequest = await Request.findOne({ 
+            projectId, 
+            freelancerId:userId 
+        });
+        
+        if (existingRequest) {
+            return res.status(409).json({
+                error: 'Duplicate Request',
+                message: 'You have already sent a request for this project',
+                requestStatus: existingRequest.status,
+                existingRequestId: existingRequest._id
+            });
+        }
+
+        // Check existing team membership
+        const team = await Team.findOne({ projectId });
+        if (team?.members.includes(userId)) {
+            return res.status(409).json({
+                error: 'Already a Member',
+                message: 'You are already a member of this project team',
+                teamId: team._id,
+                joinedAt: team.createdAt
+            });
+        }
+
+        // Create new request
+        const newRequest = await Request.create({
             projectId,
-            userId,
-            ownerId,
-            skills,
-            about,
-            email
+            freelancerId: userId,
+            projectOwnerId: ownerId,
+            skills: skills || '',
+            about: about || '',
+            email: email || '',
+            status: 'pending'
         });
 
-        await newRequest.save();
-        res.status(201).json({ message: 'Join request sent successfully.', request: newRequest });
+        return res.status(201).json({
+            success: true,
+            message: 'Join request submitted successfully',
+            request: newRequest,
+            nextSteps: 'The project owner will review your request'
+        });
 
     } catch (error) {
-        res.status(500).json({ message: 'Error creating request.', error: error.message });
+        console.error('Request creation error:', error);
+
+        // Handle specific error types
+        if (error.name === 'ValidationError') {
+            const errors = Object.values(error.errors).map(err => ({
+                field: err.path,
+                message: err.message
+            }));
+            
+            return res.status(400).json({
+                error: 'Validation Failed',
+                message: 'Invalid request data',
+                details: errors
+            });
+        }
+
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                error: 'Invalid ID Format',
+                message: 'One or more provided IDs are invalid',
+                path: error.path,
+                value: error.value
+            });
+        }
+
+        // Generic error handler
+        return res.status(500).json({
+            error: 'Internal Server Error',
+            message: 'An unexpected error occurred while processing your request',
+            ...(process.env.NODE_ENV === 'development' && {
+                debug: {
+                    message: error.message,
+                    stack: error.stack
+                }
+            })
+        });
     }
 };
-
 
 // Get all pending requests for a project owner
 const getOwnerRequests = async (req, res) => {
     try {
         const { ownerId } = req.params;
 
-        const requests = await Request.find({ ownerId, status: 'pending' })
-            .populate('userId', 'email')
+        const requests = await Request.find({ projectOwnerId: ownerId, status: 'pending' })
+            .populate('freelancerId', 'username email')
             .populate('projectId', 'title');
 
         res.status(200).json(requests);
@@ -74,7 +173,7 @@ const acceptRequest = async (req, res) => {
         if (!team) {
             team = new Team({
                 projectId: request.projectId,
-                ownerId: request.ownerId,
+                ownerId: request.projectOwnerId,
                 members: [request.userId]
             });
         } else {
@@ -131,9 +230,9 @@ const getFreelancerRequests = async (req, res) => {
     try {
         const userId = req.params.userId;
 
-        const requests = await Request.find({ userId })
+        const requests = await Request.find({ freelancerId: userId })
             .populate('projectId', 'title description')
-            .populate('ownerId', 'username email')
+            .populate('projectOwnerId', 'username email')
             .sort({ createdAt: -1 });
 
         res.status(200).json(requests);

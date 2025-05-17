@@ -218,3 +218,31 @@
         align-self: flex-start;
     }
 }
+
+/* Add to your global CSS */
+.confirmation-toast {
+    min-width: 300px;
+    padding: 15px;
+}
+
+.toast-confirm-btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.toast-cancel-btn {
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.Toastify__toast {
+    font-family: inherit;
+}

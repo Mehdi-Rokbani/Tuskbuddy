@@ -9,24 +9,30 @@ const ProfileUpdate = () => {
     const { user, dispatch } = useContext(AuthContext);
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
-    const [skills, setSkills] = useState([]);
+    const [selectedSkills, setSelectedSkills] = useState([]);
     const [password, setPassword] = useState("");
     const [editingField, setEditingField] = useState(null);
-    
+
+    // Predefined list of web development skills
+    const skillOptions = [
+        "HTML", "CSS", "JavaScript", "TypeScript", "React", "Angular", "Vue.js",
+        "Node.js", "Express", "MongoDB", "SQL", "Python", "Django", "Flask",
+        "PHP", "Laravel", "Ruby", "Ruby on Rails", "Java", "Spring Boot",
+        "C#", ".NET", "AWS", "Docker", "Kubernetes", "GraphQL", "REST API"
+    ];
+
     useEffect(() => {
         if (user) {
             setUsername(user?.user?.username || '');
             setEmail(user?.user?.email || '');
-            setSkills(user?.user?.skills ? user?.user?.skills.join(', ') : '');
+            setSelectedSkills(user?.user?.skills || []);
         }
     }, [user]);
 
     const handleSave = async (field, value) => {
-        const updatedValue = field === "skills"
-            ? value.split(",").map((s) => s.trim())
-            : value;
-
         try {
+            const updatedValue = field === "skills" ? selectedSkills : value;
+
             const res = await fetch(`/users/UpdateUser/${user.user._id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -58,15 +64,36 @@ const ProfileUpdate = () => {
         // Reset to original values when canceling edit
         if (editingField === "username") setUsername(user?.user?.username || '');
         if (editingField === "email") setEmail(user?.user?.email || '');
-        if (editingField === "skills") setSkills(user?.user?.skills ? user?.user?.skills.join(', ') : '');
+        if (editingField === "skills") setSelectedSkills(user?.user?.skills || []);
         if (editingField === "password") setPassword("");
         setEditingField(null);
+    };
+
+    const handleSkillChange = (skill) => {
+        setSelectedSkills(prevSkills => {
+            if (prevSkills.includes(skill)) {
+                return prevSkills.filter(s => s !== skill);
+            } else {
+                return [...prevSkills, skill];
+            }
+        });
+    };
+
+    const handleSkillSelect = (e) => {
+        const selectedSkill = e.target.value;
+        if (selectedSkill && !selectedSkills.includes(selectedSkill) && selectedSkill !== "default") {
+            setSelectedSkills([...selectedSkills, selectedSkill]);
+        }
+    };
+
+    const removeSkill = (skillToRemove) => {
+        setSelectedSkills(selectedSkills.filter(skill => skill !== skillToRemove));
     };
 
     return (
         <div className="profile-page">
             <Header />
-            
+
             <div className="profile-container">
                 <div className="profile-header">
                     <div className="profile-avatar">
@@ -131,21 +158,51 @@ const ProfileUpdate = () => {
                         <div className="field-content">
                             {editingField === "skills" ? (
                                 <div className="edit-mode">
-                                    <input
-                                        type="text"
-                                        value={skills}
-                                        onChange={(e) => setSkills(e.target.value)}
-                                        placeholder="Enter skills (comma separated)"
-                                    />
+                                    <div className="skills-selector">
+                                        <select
+                                            onChange={handleSkillSelect}
+                                            value="default"
+                                            className="skills-dropdown"
+                                        >
+                                            <option value="default" disabled>Select skills</option>
+                                            {skillOptions.filter(skill => !selectedSkills.includes(skill)).map(skill => (
+                                                <option key={skill} value={skill}>{skill}</option>
+                                            ))}
+                                        </select>
+
+                                        <div className="selected-skills">
+                                            {selectedSkills.map(skill => (
+                                                <div key={skill} className="skill-tag">
+                                                    {skill}
+                                                    <button
+                                                        className="remove-skill"
+                                                        onClick={() => removeSkill(skill)}
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                     <div className="button-group">
-                                        <button className="save-btn" onClick={() => handleSave("skills", skills)}>Save</button>
+                                        <button className="save-btn" onClick={() => handleSave("skills")}>Save</button>
                                         <button className="cancel-btn" onClick={cancelEdit}>Cancel</button>
                                     </div>
                                 </div>
                             ) : (
                                 <div className="display-mode">
                                     <span className="skills-display">
-                                        
+                                        {selectedSkills.length > 0 ? (
+                                            <div className="skills-tags">
+                                                {selectedSkills.map(skill => (
+                                                    <span key={skill} className="skill-tag read-only">
+                                                        {skill}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className="no-skills">No skills added</span>
+                                        )}
                                     </span>
                                     <button className="edit-btn" onClick={() => setEditingField("skills")}>Edit</button>
                                 </div>

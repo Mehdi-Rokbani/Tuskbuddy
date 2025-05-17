@@ -14,8 +14,8 @@ import ProfileUpdate from './pages/ProfileUpdate';
 import TeamTable from './pages/TeamTable';
 import FreelancerTasks from './pages/FreelancerTasks';
 import FreelancerRequests from './pages/freelancerreq';
-
-import { ToastContainer, toast } from 'react-toastify';
+import NotFound from './pages/Notfound';
+import { ToastContainer} from 'react-toastify';
 
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -49,9 +49,23 @@ function App() {
           {user && (<Route path='/freereq' element={<FreelancerRequests />}></Route>)}
           {!user && (<Route path='/freereq' element={<Login />}></Route>)}
 
+          <Route path="*" element={<NotFound />} />
+
         </Routes>
+        
       </BrowserRouter>
-      <ToastContainer />
+      <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
     </>
 
   );

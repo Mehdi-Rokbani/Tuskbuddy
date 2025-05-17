@@ -7,19 +7,16 @@ const Projects = () => {
     const [error, setError] = useState(null);
 
     const fetchProjects = async () => {
-        try {
+      try {
           const response = await fetch('/projects/allProjects');
-          if (!response.ok) {
-            throw new Error('Failed to fetch projects');
-          }
-          const json = await response.json();
-          setProjects(json.projet);
-          console.log(json);
-        } catch (err) {
+          if (!response.ok) throw new Error('Failed to fetch projects');
+          const projects = await response.json();
+          setProjects(Array.isArray(projects) ? projects : []); // Ensure it's an array
+      } catch (err) {
           console.error('Error fetching projects:', err);
           setError(err.message);
-        }
-      };
+      }
+  };
     
       useEffect(() => {
         fetchProjects(); 
@@ -30,7 +27,7 @@ const Projects = () => {
             <h1 className='H10'>Projects</h1>
             {error && <p style={{ color: 'red' }}>{error}</p>}
             <div className="projects-container0">
-                {projects.slice(0, 4).map((projet) => (
+                {projects && projects.slice(0, 4).map((projet) => (
                     <ProjectCard
                     key={projet._id}
                         project={projet}

@@ -14,7 +14,7 @@ const Projects = () => {
             throw new Error('Failed to fetch projects');
           }
           const json = await response.json();
-          setProjects(json.projet);
+          setProjects(json);
           console.log(json);
         } catch (err) {
           console.error('Error fetching projects:', err);

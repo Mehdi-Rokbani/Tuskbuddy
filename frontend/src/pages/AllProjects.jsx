@@ -13,7 +13,7 @@ const AllProjects = () => {
             const res = await fetch('/projects/allProjects');
             const data = await res.json();
             if (res.ok) {
-                setProjects(data.projet);
+                setProjects(data);
             } else {
                 console.error('Failed to fetch projects');
             }

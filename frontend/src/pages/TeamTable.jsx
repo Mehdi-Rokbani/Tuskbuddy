@@ -1,34 +1,32 @@
-// TeamTable.js
 import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import '../assets/style/TeamTable.css';
 import { AuthContext } from '../context/AuthContext';
 import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const TeamTable = () => {
     const navigate = useNavigate();
     const { user } = useContext(AuthContext);
     const userId = user?.user?._id;
-    if (user?.user?.role === 'freelancer') { navigate('/teams') }
     const [ownedTeams, setOwnedTeams] = useState([]);
     const [showTaskFormFor, setShowTaskFormFor] = useState(null);
     const [newTask, setNewTask] = useState({
         title: '',
         description: '',
         status: 'pending',
-        githubUrl: '' // Initialize with empty GitHub URL
+        githubUrl: '',
+        startdate: '',
+        deadline: ''
     });
     const [memberTasks, setMemberTasks] = useState({});
     const [isLoading, setIsLoading] = useState(true);
-    const [confirmRemove, setConfirmRemove] = useState(null); // State to track which member to remove
+    const [confirmRemove, setConfirmRemove] = useState(null);
 
-    // Status options for tasks - matching your backend options
     const taskStatusOptions = ['pending', 'in progress', 'completed'];
 
-    // fetchTeams wrapped in useCallback so it's stable across renders
     const fetchTeams = useCallback(async () => {
         try {
             setIsLoading(true);
@@ -36,16 +34,16 @@ const TeamTable = () => {
             if (!res.ok) throw new Error('Failed to fetch teams');
             const data = await res.json();
 
-            // only teams where current user is owner
+            // Filter for teams owned by the current user
             const userOwned = data.filter(team => team.ownerId._id === userId);
             setOwnedTeams(userOwned);
 
-            // Fetch tasks for each team member
+            // Fetch tasks for each member in each team
             const tasksPromises = [];
             userOwned.forEach(team => {
                 team.members.forEach(member => {
                     if (member._id !== team.ownerId._id) {
-                        tasksPromises.push(fetchMemberTasks(member._id));
+                        tasksPromises.push(fetchMemberTasks(member._id, team.projectId._id));
                     }
                 });
             });
@@ -53,41 +51,179 @@ const TeamTable = () => {
             await Promise.all(tasksPromises);
             setIsLoading(false);
         } catch (err) {
-            console.error(err);
+            console.error('Error fetching teams:', err);
             setIsLoading(false);
+            toast.error('Failed to load teams');
         }
     }, [userId]);
 
-    // Fetch tasks for a specific member - updated to match your controller
-    const fetchMemberTasks = async (memberId) => {
-        try {
-            const res = await fetch(`/tasks/user/${memberId}`);
-            if (!res.ok) throw new Error('Failed to fetch member tasks');
-            const data = await res.json();
-
-            // Check data structure and store tasks in state
-            if (data.success && Array.isArray(data.data)) {
-                setMemberTasks(prev => ({
-                    ...prev,
-                    [memberId]: data.data
-                }));
-                return data.data;
-            } else {
-                console.error("Unexpected response format:", data);
-                return [];
-            }
-        } catch (err) {
-            console.error(`Error fetching tasks for member ${memberId}:`, err);
-            return [];
-        }
-    };
-
-    // now safe to put fetchTeams in dependencies
     useEffect(() => {
         if (userId) {
             fetchTeams();
         }
     }, [userId, fetchTeams]);
+
+    // Redirect freelancers
+    if (user?.user?.role === 'freelancer') {
+        navigate('/');
+        return null;
+    }
+
+    const formatSkills = (skills) => {
+        if (!skills) return 'N/A';
+        if (Array.isArray(skills)) {
+            return skills.length > 0 ? skills.join(', ') : 'N/A';
+        }
+        return skills || 'N/A';
+    };
+
+    const fetchMemberTasks = async (memberId, projectId) => {
+        try {
+            const res = await fetch(`/tasks/user/${memberId}/project/${projectId}`);
+            if (!res.ok) throw new Error('Failed to fetch member tasks');
+            const data = await res.json();
+
+            // Check for data format from the API
+            if (data.success && data.data) {
+                // Store tasks with the unique key for this member-project pair
+                setMemberTasks(prev => ({
+                    ...prev,
+                    [`${memberId}-${projectId}`]: data.data
+                }));
+            } else {
+                console.error("Unexpected response format:", data);
+                throw new Error('Invalid tasks data format');
+            }
+        } catch (err) {
+            console.error(`Error fetching tasks for member ${memberId}:`, err);
+            toast.error(`Failed to load tasks for team member`);
+        }
+    };
+
+    const toggleTaskForm = (memberId) => {
+        setShowTaskFormFor(prev => (prev === memberId ? null : memberId));
+        setNewTask({
+            title: '',
+            description: '',
+            status: 'pending',
+            githubUrl: '',
+            startdate: '',
+            deadline: ''
+        });
+    };
+
+    const handleTaskSubmit = async (memberId, projectId) => {
+        try {
+            if (!newTask.startdate || !newTask.deadline) {
+                throw new Error('Start date and deadline are required');
+            }
+
+            const res = await fetch('/tasks/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: newTask.title,
+                    description: newTask.description,
+                    status: newTask.status,
+                    githubUrl: newTask.githubUrl,
+                    startdate: newTask.startdate,
+                    deadline: newTask.deadline,
+                    assignedTo: memberId,
+                    createdBy: userId,
+                    projectId
+                })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.message || 'Failed to assign task');
+            }
+
+            // Refresh tasks after assigning a new one
+            await fetchMemberTasks(memberId, projectId);
+            setShowTaskFormFor(null);
+            toast.success('Task assigned successfully!');
+        } catch (err) {
+            console.error(err);
+            toast.error(`Error assigning task: ${err.message}`);
+        }
+    };
+
+    const updateGithubUrl = async (taskId, githubUrl, memberId, projectId) => {
+        try {
+            const res = await fetch(`/tasks/${taskId}/github-url`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ githubUrl })
+            });
+
+            if (!res.ok) throw new Error('Failed to update GitHub URL');
+
+            // Refresh tasks after updating
+            await fetchMemberTasks(memberId, projectId);
+            toast.success('GitHub URL updated successfully!');
+        } catch (err) {
+            console.error('Error updating GitHub URL:', err);
+            toast.error(`Failed to update GitHub URL: ${err.message}`);
+        }
+    };
+
+    const verifyTask = async (taskId, isApproved, memberId, projectId) => {
+        try {
+            const res = await fetch(`/tasks/${taskId}/verify`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ verified: isApproved })
+            });
+
+            if (!res.ok) throw new Error('Failed to verify task');
+
+            // Refresh tasks after verification
+            await fetchMemberTasks(memberId, projectId);
+            toast.success(isApproved ? 'Task approved!' : 'Task rejected');
+        } catch (err) {
+            console.error('Error verifying task:', err);
+            toast.error(`Failed to verify task: ${err.message}`);
+        }
+    };
+
+    const removeMember = async (teamId, memberId, memberName) => {
+        try {
+            const res = await fetch(`/teams/remove/${teamId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ memberId })
+            });
+
+            if (!res.ok) throw new Error('Failed to remove member');
+
+            setOwnedTeams(prevTeams =>
+                prevTeams.map(team =>
+                    team._id === teamId
+                        ? { ...team, members: team.members.filter(member => member._id !== memberId) }
+                        : team
+                )
+            );
+            setConfirmRemove(null);
+            toast.success(`${memberName} removed from team`);
+        } catch (err) {
+            console.error('Error removing member:', err);
+            toast.error(`Failed to remove member: ${err.message}`);
+        }
+    };
+
+    const getStatusClass = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'completed': return 'status-completed';
+            case 'in progress': return 'status-in-progress';
+            default: return 'status-pending';
+        }
+    };
+
+    const getVerificationClass = (verified) => {
+        if (!verified || verified.status === null) return '';
+        return verified.status ? 'verification-approved' : 'verification-rejected';
+    };
 
     if (!user) {
         return <Navigate to="/login" />;
@@ -102,200 +238,9 @@ const TeamTable = () => {
         return <div className="no-teams-message">You don't own any teams.</div>;
     }
 
-    const toggleTaskForm = (memberId) => {
-        setShowTaskFormFor(prev => (prev === memberId ? null : memberId));
-        setNewTask({ title: '', description: '', status: 'pending', githubUrl: '' });
-    };
-
-    const handleTaskSubmit = async (memberId, projectId) => {
-        try {
-            // Using the correct endpoint from your controller
-            const res = await fetch('/tasks/tasks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: newTask.title,
-                    description: newTask.description,
-                    status: newTask.status,
-                    assignedTo: memberId,
-                    createdBy: userId,
-                    projectId,
-                    githubUrl: newTask.githubUrl // Add GitHub URL to task creation
-                })
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.message || 'Failed to assign task');
-            }
-
-            const response = await res.json();
-
-            if (!response.success) {
-                throw new Error(response.message || 'Failed to assign task');
-            }
-
-            // Refresh tasks for this member to ensure we have the latest data
-            await fetchMemberTasks(memberId);
-            setShowTaskFormFor(null);
-
-            // Show success notification
-            toast.success('Task assigned successfully!');
-
-        } catch (err) {
-            console.error(err);
-            toast.error(`Error assigning task: ${err.message}`);
-        }
-    };
-
-    // New function to update GitHub URL
-    const updateGithubUrl = async (taskId, githubUrl, memberId) => {
-        try {
-            const res = await fetch(`/tasks/${taskId}/github-url`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ githubUrl })
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.message || 'Failed to update GitHub URL');
-            }
-
-            const response = await res.json();
-
-            if (!response.success) {
-                throw new Error(response.message || 'Failed to update GitHub URL');
-            }
-
-            // Update local state with the updated task
-            setMemberTasks(prev => ({
-                ...prev,
-                [memberId]: prev[memberId].map(task =>
-                    task._id === taskId ? { ...task, githubUrl } : task
-                )
-            }));
-
-            // Show success notification
-            toast.success('GitHub URL updated successfully!');
-
-        } catch (err) {
-            console.error('Error updating GitHub URL:', err);
-            toast.error(`Failed to update GitHub URL: ${err.message}`);
-        }
-    };
-
-    // New function to verify task
-    const verifyTask = async (taskId, isApproved, memberId) => {
-        try {
-            const res = await fetch(`/tasks/${taskId}/verify`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ verified: isApproved })
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.message || 'Failed to verify task');
-            }
-
-            const response = await res.json();
-
-            if (!response.success) {
-                throw new Error(response.message || 'Failed to verify task');
-            }
-
-            // Update local state with the updated task
-            setMemberTasks(prev => ({
-                ...prev,
-                [memberId]: prev[memberId].map(task =>
-                    task._id === taskId ? {
-                        ...task,
-                        verified: {
-                            status: isApproved,
-                            verifiedAt: new Date()
-                        }
-                    } : task
-                )
-            }));
-
-            // Show success notification
-            toast.success(isApproved ? 'Task approved successfully!' : 'Task rejected!');
-
-        } catch (err) {
-            console.error('Error verifying task:', err);
-            toast.error(`Failed to verify task: ${err.message}`);
-        }
-    };
-
-    // New function to remove a team member
-    const removeMember = async (teamId, memberId, memberName) => {
-        try {
-            const res = await fetch(`/teams/remove/${teamId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ memberId })
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.message || 'Failed to remove member');
-            }
-
-            // Update local state by removing the member from the team
-            setOwnedTeams(prevTeams =>
-                prevTeams.map(team =>
-                    team._id === teamId
-                        ? { ...team, members: team.members.filter(member => member._id !== memberId) }
-                        : team
-                )
-            );
-
-            // Reset confirmation state
-            setConfirmRemove(null);
-
-            // Show success notification
-            toast.success(`${memberName} has been removed from the team`);
-
-        } catch (err) {
-            console.error('Error removing member:', err);
-            toast.error(`Failed to remove member: ${err.message}`);
-        }
-    };
-
-    // Get status class for styling
-    const getStatusClass = (status) => {
-        switch (status?.toLowerCase()) {
-            case 'completed':
-                return 'status-completed';
-            case 'in progress':
-                return 'status-in-progress';
-            case 'pending':
-            default:
-                return 'status-pending';
-        }
-    };
-
-    // Get verification status class
-    const getVerificationClass = (verified) => {
-        if (!verified || verified.status === null) return '';
-        return verified.status ? 'verification-approved' : 'verification-rejected';
-    };
-
     return (
         <>
-            <div className='header'> <Header /></div>
-            <ToastContainer
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
+            <div className='header'><Header /></div>
 
             <div className="user-table-container">
                 {ownedTeams.map(team => (
@@ -316,12 +261,12 @@ const TeamTable = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {/* Owner */}
+                                {/* Owner Row */}
                                 <tr className="owner-row">
-                                    <td className="username-cell">{team.ownerId.username}</td>
+                                    <td>{team.ownerId.username}</td>
                                     <td>Owner</td>
                                     <td>{team.ownerId.email}</td>
-                                    <td>{team.ownerId.skills || 'N/A'}</td>
+                                    <td>{formatSkills(team.ownerId.skills)}</td>
                                     <td>—</td>
                                     <td>—</td>
                                     <td>—</td>
@@ -332,159 +277,104 @@ const TeamTable = () => {
                                 {/* Members */}
                                 {team.members.map((member, idx) => {
                                     if (member._id === team.ownerId._id) return null;
-                                    const memberTaskList = memberTasks[member._id] || [];
+                                    const taskKey = `${member._id}-${team.projectId._id}`;
+                                    const memberTaskList = memberTasks[taskKey] || [];
 
                                     return (
-                                        <React.Fragment key={member._id}>
+                                        <React.Fragment key={`${member._id}-${team._id}`}>
                                             {memberTaskList.length > 0 ? (
-                                                // If member has tasks, render a row for each task
                                                 memberTaskList.map((task, taskIdx) => (
-                                                    <tr key={task._id} className={idx % 2 === 0 ? 'even-row' : 'odd-row'}>
-                                                        {/* Only show member details in the first task row */}
-                                                        {taskIdx === 0 ? (
+                                                    <tr key={`${team._id}-${task._id}`} className={idx % 2 === 0 ? 'even-row' : 'odd-row'}>
+                                                        {taskIdx === 0 && (
                                                             <>
-                                                                <td className="username-cell" rowSpan={memberTaskList.length}>
-                                                                    {member.username}
-                                                                </td>
+                                                                <td rowSpan={memberTaskList.length}>{member.username}</td>
                                                                 <td rowSpan={memberTaskList.length}>{member.role || 'Member'}</td>
                                                                 <td rowSpan={memberTaskList.length}>{member.email}</td>
-                                                                <td rowSpan={memberTaskList.length}>{member.skills || 'N/A'}</td>
+                                                                <td rowSpan={memberTaskList.length}>{formatSkills(member.skills)}</td>
                                                             </>
-                                                        ) : null}
-                                                        <td className="task-title-cell">{task.title}</td>
-                                                        <td className="task-status-cell">
-                                                            <div className="task-status-display">
-                                                                <span className={`status-badge ${getStatusClass(task.status)}`}>
-                                                                    {task.status?.charAt(0).toUpperCase() + task.status?.slice(1) || 'pending'}
-                                                                </span>
-                                                                {/* Owner should NOT update status anymore */}
-                                                            </div>
+                                                        )}
+                                                        <td>{task.title}</td>
+                                                        <td>
+                                                            <span className={`status-badge ${getStatusClass(task.status)}`}>
+                                                                {task.status?.charAt(0).toUpperCase() + task.status?.slice(1)}
+                                                            </span>
                                                         </td>
-                                                        <td className="github-url-cell">
+                                                        <td>
                                                             {task.githubUrl ? (
-                                                                <a
-                                                                    href={task.githubUrl}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="github-link"
-                                                                >
+                                                                <a href={task.githubUrl} target="_blank" rel="noopener noreferrer">
                                                                     View Code
                                                                 </a>
-                                                            ) : (
-                                                                <span className="no-github">Not submitted</span>
-                                                            )}
+                                                            ) : 'Not submitted'}
                                                         </td>
-                                                        <td className={`verification-cell ${getVerificationClass(task.verified)}`}>
+                                                        <td className={getVerificationClass(task.verified)}>
                                                             {task.status === 'completed' ? (
-                                                                <>
-                                                                    {!task.verified || task.verified.status === null ? (
-                                                                        <div className="verification-actions">
-                                                                            <button
-                                                                                className="verify-approve-btn"
-                                                                                onClick={() => verifyTask(task._id, true, member._id)}
-                                                                            >
-                                                                                Approve
-                                                                            </button>
-                                                                            <button
-                                                                                className="verify-reject-btn"
-                                                                                onClick={() => verifyTask(task._id, false, member._id)}
-                                                                            >
-                                                                                Reject
-                                                                            </button>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <span className={`verification-status ${task.verified.status ? 'verified-approved' : 'verified-rejected'}`}>
-                                                                            {task.verified.status ? 'Approved' : 'Rejected'}
-                                                                        </span>
-                                                                    )}
-                                                                </>
-                                                            ) : (
-                                                                <span className="not-ready">Not ready</span>
-                                                            )}
+                                                                !task.verified || task.verified.status === null ? (
+                                                                    <div className="verification-actions">
+                                                                        <button onClick={() => verifyTask(task._id, true, member._id, team.projectId._id)}>
+                                                                            Approve
+                                                                        </button>
+                                                                        <button onClick={() => verifyTask(task._id, false, member._id, team.projectId._id)}>
+                                                                            Reject
+                                                                        </button>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span>{task.verified.status ? 'Approved' : 'Rejected'}</span>
+                                                                )
+                                                            ) : 'Not ready'}
                                                         </td>
-                                                        {/* Show assign task button only in the first row */}
-                                                        {taskIdx === 0 ? (
-                                                            <td rowSpan={memberTaskList.length} className="action-cell">
+                                                        {taskIdx === 0 && (
+                                                            <td rowSpan={memberTaskList.length}>
                                                                 <div className="action-buttons">
-                                                                    <button
-                                                                        className="assign-btn"
-                                                                        onClick={() => toggleTaskForm(member._id)}
-                                                                    >
+                                                                    <button onClick={() => toggleTaskForm(member._id)}>
                                                                         Assign Task
                                                                     </button>
-
-                                                                    {confirmRemove === member._id ? (
+                                                                    {confirmRemove === `${member._id}-${team._id}` ? (
                                                                         <div className="remove-confirmation">
                                                                             <p>Are you sure?</p>
-                                                                            <button
-                                                                                className="confirm-remove-btn"
-                                                                                onClick={() => removeMember(team._id, member._id, member.username)}
-                                                                            >
+                                                                            <button onClick={() => removeMember(team._id, member._id, member.username)}>
                                                                                 Yes
                                                                             </button>
-                                                                            <button
-                                                                                className="cancel-remove-btn"
-                                                                                onClick={() => setConfirmRemove(null)}
-                                                                            >
+                                                                            <button onClick={() => setConfirmRemove(null)}>
                                                                                 No
                                                                             </button>
                                                                         </div>
                                                                     ) : (
-                                                                        <button
-                                                                            className="remove-btn"
-                                                                            onClick={() => setConfirmRemove(member._id)}
-                                                                        >
+                                                                        <button onClick={() => setConfirmRemove(`${member._id}-${team._id}`)}>
                                                                             Remove
                                                                         </button>
                                                                     )}
                                                                 </div>
                                                             </td>
-                                                        ) : null}
+                                                        )}
                                                     </tr>
                                                 ))
                                             ) : (
-                                                // If member has no tasks, render a single row
                                                 <tr className={idx % 2 === 0 ? 'even-row' : 'odd-row'}>
-                                                    <td className="username-cell">{member.username}</td>
+                                                    <td>{member.username}</td>
                                                     <td>{member.role || 'Member'}</td>
                                                     <td>{member.email}</td>
-                                                    <td>{member.skills || 'N/A'}</td>
-                                                    <td className="tasks-cell">
-                                                        <span className="no-tasks">No tasks assigned</span>
-                                                    </td>
+                                                    <td>{formatSkills(member.skills)}</td>
+                                                    <td>No tasks assigned</td>
                                                     <td>—</td>
                                                     <td>—</td>
                                                     <td>—</td>
-                                                    <td className="action-cell">
+                                                    <td>
                                                         <div className="action-buttons">
-                                                            <button
-                                                                className="assign-btn"
-                                                                onClick={() => toggleTaskForm(member._id)}
-                                                            >
+                                                            <button onClick={() => toggleTaskForm(member._id)}>
                                                                 Assign Task
                                                             </button>
-
-                                                            {confirmRemove === member._id ? (
+                                                            {confirmRemove === `${member._id}-${team._id}` ? (
                                                                 <div className="remove-confirmation">
                                                                     <p>Are you sure?</p>
-                                                                    <button
-                                                                        className="confirm-remove-btn"
-                                                                        onClick={() => removeMember(team._id, member._id, member.username)}
-                                                                    >
+                                                                    <button onClick={() => removeMember(team._id, member._id, member.username)}>
                                                                         Yes
                                                                     </button>
-                                                                    <button
-                                                                        className="cancel-remove-btn"
-                                                                        onClick={() => setConfirmRemove(null)}
-                                                                    >
+                                                                    <button onClick={() => setConfirmRemove(null)}>
                                                                         No
                                                                     </button>
                                                                 </div>
                                                             ) : (
-                                                                <button
-                                                                    className="remove-btn"
-                                                                    onClick={() => setConfirmRemove(member._id)}
-                                                                >
+                                                                <button onClick={() => setConfirmRemove(`${member._id}-${team._id}`)}>
                                                                     Remove
                                                                 </button>
                                                             )}
@@ -496,44 +386,31 @@ const TeamTable = () => {
                                             {showTaskFormFor === member._id && (
                                                 <tr className="task-form-row">
                                                     <td colSpan="9">
-                                                        <form
-                                                            className="task-form"
-                                                            onSubmit={e => {
-                                                                e.preventDefault();
-                                                                handleTaskSubmit(member._id, team.projectId._id);
-                                                            }}
-                                                        >
+                                                        <form onSubmit={(e) => {
+                                                            e.preventDefault();
+                                                            handleTaskSubmit(member._id, team.projectId._id);
+                                                        }}>
                                                             <div className="form-group">
-                                                                <label>Task Title:</label>
+                                                                <label>Task Title*</label>
                                                                 <input
                                                                     type="text"
-                                                                    placeholder="Task title"
                                                                     value={newTask.title}
-                                                                    onChange={e =>
-                                                                        setNewTask(prev => ({ ...prev, title: e.target.value }))
-                                                                    }
+                                                                    onChange={e => setNewTask(prev => ({ ...prev, title: e.target.value }))}
                                                                     required
                                                                 />
                                                             </div>
-
                                                             <div className="form-group">
-                                                                <label>Description:</label>
+                                                                <label>Description</label>
                                                                 <textarea
-                                                                    placeholder="Description"
                                                                     value={newTask.description}
-                                                                    onChange={e =>
-                                                                        setNewTask(prev => ({ ...prev, description: e.target.value }))
-                                                                    }
+                                                                    onChange={e => setNewTask(prev => ({ ...prev, description: e.target.value }))}
                                                                 />
                                                             </div>
-
                                                             <div className="form-group">
-                                                                <label>Initial Status:</label>
+                                                                <label>Status</label>
                                                                 <select
                                                                     value={newTask.status}
-                                                                    onChange={e =>
-                                                                        setNewTask(prev => ({ ...prev, status: e.target.value }))
-                                                                    }
+                                                                    onChange={e => setNewTask(prev => ({ ...prev, status: e.target.value }))}
                                                                 >
                                                                     {taskStatusOptions.map(option => (
                                                                         <option key={option} value={option}>
@@ -542,26 +419,35 @@ const TeamTable = () => {
                                                                     ))}
                                                                 </select>
                                                             </div>
-
                                                             <div className="form-group">
-                                                                <label>GitHub URL (Optional):</label>
+                                                                <label>Start Date*</label>
                                                                 <input
-                                                                    type="url"
-                                                                    placeholder="GitHub repository URL"
-                                                                    value={newTask.githubUrl}
-                                                                    onChange={e =>
-                                                                        setNewTask(prev => ({ ...prev, githubUrl: e.target.value }))
-                                                                    }
+                                                                    type="date"
+                                                                    value={newTask.startdate}
+                                                                    onChange={e => setNewTask(prev => ({ ...prev, startdate: e.target.value }))}
+                                                                    required
                                                                 />
                                                             </div>
-
+                                                            <div className="form-group">
+                                                                <label>Deadline*</label>
+                                                                <input
+                                                                    type="date"
+                                                                    value={newTask.deadline}
+                                                                    onChange={e => setNewTask(prev => ({ ...prev, deadline: e.target.value }))}
+                                                                    required
+                                                                />
+                                                            </div>
+                                                            <div className="form-group">
+                                                                <label>GitHub URL</label>
+                                                                <input
+                                                                    type="url"
+                                                                    value={newTask.githubUrl}
+                                                                    onChange={e => setNewTask(prev => ({ ...prev, githubUrl: e.target.value }))}
+                                                                />
+                                                            </div>
                                                             <div className="form-actions">
-                                                                <button type="submit" className="submit-btn">Assign Task</button>
-                                                                <button
-                                                                    type="button"
-                                                                    className="cancel-btn"
-                                                                    onClick={() => setShowTaskFormFor(null)}
-                                                                >
+                                                                <button type="submit">Assign Task</button>
+                                                                <button type="button" onClick={() => setShowTaskFormFor(null)}>
                                                                     Cancel
                                                                 </button>
                                                             </div>

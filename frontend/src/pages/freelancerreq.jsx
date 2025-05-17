@@ -2,12 +2,56 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import '../assets/style/freelancerreq.css';
 import Header from '../components/Header';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const FreelancerRequests = () => {
     const [requests, setRequests] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const { user } = useContext(AuthContext);
+    const navigate = useNavigate();
+
+    // Custom confirmation toast
+    const confirmAction = (message, onConfirm) => {
+        toast.dismiss(); // Dismiss any existing toasts
+        toast.info(
+            <div>
+                <p>{message}</p>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                    <button
+                        className="toast-confirm-btn"
+                        onClick={() => {
+                            toast.dismiss();
+                            onConfirm();
+                        }}
+                    >
+                        Confirm
+                    </button>
+                    <button
+                        className="toast-cancel-btn"
+                        onClick={() => toast.dismiss()}
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>,
+            {
+                autoClose: false,
+                closeButton: false,
+                position: 'top-center',
+                className: 'confirmation-toast'
+            }
+        );
+    };
+
+
+    useEffect(() => {
+        if (user?.user?.role === 'client') {
+            toast.warning('Clients cannot access freelancer requests');
+            navigate('/');
+        }
+    }, [user, navigate]);
 
     useEffect(() => {
         const fetchRequests = async () => {
@@ -15,8 +59,6 @@ const FreelancerRequests = () => {
 
             try {
                 setIsLoading(true);
-
-                // Fetch requests with populated project data
                 const response = await fetch(`/requests/freelancer/${user.user._id}`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -29,9 +71,11 @@ const FreelancerRequests = () => {
 
                 const data = await response.json();
                 setRequests(data);
+
             } catch (err) {
                 setError(err.message);
                 console.error('Error fetching requests:', err);
+
             } finally {
                 setIsLoading(false);
             }
@@ -63,7 +107,7 @@ const FreelancerRequests = () => {
     };
 
     const deleteRequest = async (requestId) => {
-        if (window.confirm('Are you sure you want to delete this request?')) {
+        confirmAction('Are you sure you want to delete this request?', async () => {
             try {
                 const response = await fetch(`/requests/${requestId}`, {
                     method: 'DELETE',
@@ -76,16 +120,16 @@ const FreelancerRequests = () => {
                     throw new Error('Failed to delete request');
                 }
 
-                // Remove the deleted request from state
                 setRequests(requests.filter(request => request._id !== requestId));
+                toast.success('Request deleted successfully');
             } catch (err) {
                 setError(err.message);
                 console.error('Error deleting request:', err);
+                toast.error(`Failed to delete request: ${err.message}`);
             }
-        }
+        });
     };
 
-    // Helper function to safely access populated data
     const getProjectData = (request, field) => {
         if (request.projectId && typeof request.projectId === 'object' && request.projectId[field] !== undefined) {
             return request.projectId[field];
@@ -93,10 +137,9 @@ const FreelancerRequests = () => {
         return 'N/A';
     };
 
-    // Helper function to get owner data
     const getOwnerData = (request, field) => {
-        if (request.ownerId && typeof request.ownerId === 'object' && request.ownerId[field] !== undefined) {
-            return request.ownerId[field];
+        if (request.projectOwnerId && typeof request.projectOwnerId === 'object' && request.projectOwnerId[field] !== undefined) {
+            return request.projectOwnerId[field];
         }
         return 'N/A';
     };
@@ -115,7 +158,16 @@ const FreelancerRequests = () => {
                 <div className="error-message">
                     <h3>Error</h3>
                     <p>{error}</p>
-                    <button onClick={() => window.location.reload()}>Try Again</button>
+                    <button
+                        className="retry-btn"
+                        onClick={() => {
+                            setError(null);
+                            setIsLoading(true);
+                            window.location.reload();
+                        }}
+                    >
+                        Try Again
+                    </button>
                 </div>
             </div>
         );

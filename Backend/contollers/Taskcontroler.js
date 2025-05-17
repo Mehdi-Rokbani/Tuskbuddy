@@ -1,11 +1,8 @@
 const Task = require("../models/Tasks");
 const User = require("../models/User");
-const Project = require("../models/Project"); // import Project model
+const Project = require("../models/Project");
+const mongoose = require('mongoose');   
 
-
-// Add to existing controller functions
-
-// Update createTask to accept githubUrl
 const createTask = async (req, res) => {
     try {
         const {
@@ -15,51 +12,89 @@ const createTask = async (req, res) => {
             assignedTo,
             createdBy,
             projectId,
-            githubUrl    // ← new field
+            githubUrl,
+            startdate,
+            deadline
         } = req.body;
 
-        // required fields
-        if (!title || !createdBy || !projectId) {
+        // Validate required fields
+        if (!title || !createdBy || !projectId || !startdate || !deadline) {
             return res.status(400).json({
-                message: "title, createdBy, and projectId are required"
+                success: false,
+                message: "title, createdBy, projectId, startdate, and deadline are required"
             });
         }
 
-        // validate creator
+        // Validate date formats and logic
+        const startDateObj = new Date(startdate);
+        const deadlineObj = new Date(deadline);
+        
+        if (isNaN(startDateObj.getTime()) || isNaN(deadlineObj.getTime())) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid date format for startdate or deadline"
+            });
+        }
+
+        if (deadlineObj <= startDateObj) {
+            return res.status(400).json({
+                success: false,
+                message: "Deadline must be after the start date"
+            });
+        }
+
+        // Validate creator exists
         const creator = await User.findById(createdBy);
         if (!creator) {
-            return res.status(404).json({ message: "Creator not found" });
+            return res.status(404).json({ 
+                success: false,
+                message: "Creator not found" 
+            });
         }
 
-        // validate project
+        // Validate project exists
         const project = await Project.findById(projectId);
         if (!project) {
-            return res.status(404).json({ message: "Project not found" });
+            return res.status(404).json({ 
+                success: false,
+                message: "Project not found" 
+            });
         }
 
-        // validate assignee (if any)
+        // Validate assignee exists (if provided)
         if (assignedTo) {
             const user = await User.findById(assignedTo);
             if (!user) {
-                return res.status(404).json({ message: "Assigned user not found" });
+                return res.status(404).json({ 
+                    success: false,
+                    message: "Assigned user not found" 
+                });
             }
         }
 
-        // build & save
+        // Create new task with all schema fields
         const newTask = new Task({
             title,
-            description,
+            description: description || "",
             status: status || "pending",
-            assignedTo,
+            githubUrl: githubUrl || "",
+            verified: {
+                status: null,
+                verifiedAt: null
+            },
+            assignedTo: assignedTo || null,
             createdBy,
             projectId,
-            githubUrl,           // ← include it
+            startdate: startDateObj,
+            deadline: deadlineObj,
+            isDeleted: false,
             createdAt: new Date()
         });
 
+        // Save the task
         const savedTask = await newTask.save();
 
-        // populate for response
+        // Populate the task for response
         const populatedTask = await Task.findById(savedTask._id)
             .populate("assignedTo", "username email")
             .populate("createdBy", "username email")
@@ -74,6 +109,7 @@ const createTask = async (req, res) => {
     } catch (error) {
         console.error("Error creating task:", error);
         return res.status(500).json({
+            success: false,
             message: "Server error while creating task",
             error: error.message
         });
@@ -229,11 +265,53 @@ const updateTaskStatus = async (req, res) => {
     }
 };
 
-// Update module.exports
+const getTasksByUserAndProject = async (req, res) => {
+    try {
+        const { userId, projectId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Invalid user ID format'
+            });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(projectId)) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Invalid project ID format'
+            });
+        }
+
+        
+        const tasks = await Task.find({
+            assignedTo: userId,
+            projectId: projectId
+        })
+        .populate('assignedTo', 'username email')
+        .populate('projectId', 'title');
+
+        res.status(200).json({
+            success: true,
+            data: tasks
+        });
+
+    } catch (err) {
+        console.error('Error fetching tasks by user and project:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching tasks',
+            error: err.message
+        });
+    }
+};
+
+
 module.exports = {
     createTask,
     getUserTasks,
     updateTaskStatus,
-    updateTaskGithubUrl, // Add new function
-    verifyTask           // Add new function
+    updateTaskGithubUrl,
+    verifyTask,
+    getTasksByUserAndProject        
 };

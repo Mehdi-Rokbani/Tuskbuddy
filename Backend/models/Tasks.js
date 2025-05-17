@@ -16,6 +16,9 @@ const taskSchema = new mongoose.Schema({
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     projectId: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: true },
+    startdate: { type: Date, required:true },
+    deadline: { type: Date, required:true },
+    isDeleted: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
 

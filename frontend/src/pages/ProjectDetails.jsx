@@ -114,7 +114,7 @@ const ProjectDetails = () => {
                                     <div className="info-item">
                                         <span className="label">Technologies</span>
                                         <div className="tech-tags">
-                                            {project.techused?.split(',').map((tech, index) => (
+                                            {project?.techused?.map((tech, index) => (
                                                 <span key={index} className="tech-tag">{tech.trim()}</span>
                                             ))}
                                         </div>

@@ -1,22 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { useLogout } from "../hooks/useLogout"; // Make sure this path is correct
+import { useLogout } from "../hooks/useLogout";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useAuthContext } from '../hooks/useAuthContext';
 
 const PopupInfo = ({ onClose }) => {
     const navigate = useNavigate();
     const { logout } = useLogout();
     const [isDeleting, setIsDeleting] = useState(false);
-    const [userId, setUserId] = useState(null);
-
-    // Fetch user ID when component mounts
-    useEffect(() => {
-        // Get user ID from local storage or context
-        const currentUser = JSON.parse(localStorage.getItem('user'));
-        if (currentUser && currentUser.id) {
-            setUserId(currentUser.id);
-        }
-    }, []);
+    const { user } = useAuthContext();
 
     // Handle logout
     const handleLogout = () => {
@@ -32,59 +26,97 @@ const PopupInfo = ({ onClose }) => {
 
     // Navigate to account switching page or functionality
     const switchAccount = () => {
-        // Implement account switching or navigate to account selection page
-        // navigate('/accounts');
+
         if (onClose) onClose();
     };
 
     // Handle account deletion with the specified endpoint using fetch
-    const handleDelete = async () => {
-        const confirmDelete = window.confirm("Are you sure you want to delete your account? This action cannot be undone.");
+    const handleDelete = () => {
+        toast.info(
+            <div>
+                <p>Are you sure you want to delete your account?</p>
+                <p>This action cannot be undone.</p>
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+                    <button
+                        onClick={() => {
+                            toast.dismiss();
+                            proceedWithDelete();
+                        }}
+                        style={{
+                            marginRight: '10px',
+                            padding: '5px 15px',
+                            background: '#ff4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Delete
+                    </button>
+                    <button
+                        onClick={() => {
+                            toast.dismiss();
+                            if (onClose) onClose();
+                        }}
+                        style={{
+                            padding: '5px 15px',
+                            background: '#ccc',
+                            color: 'black',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>,
+            {
+                autoClose: false,
+                closeButton: false,
+                closeOnClick: false,
+                draggable: false,
+            }
+        );
 
-        if (confirmDelete) {
-            if (!userId) {
-                alert("Unable to delete account: User ID not found");
+        const proceedWithDelete = async () => {
+            if (!user?.user?._id) {
+                toast.error("Unable to delete account: User not authenticated");
                 if (onClose) onClose();
                 return;
             }
 
             try {
                 setIsDeleting(true);
-                // Use the specific endpoint as requested with fetch API
-                const response = await fetch(`/users/DeleteUser/${userId}`, {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/users/DeleteUser/${user.user._id}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
-                        // Include authorization header if required by your API
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
                 if (response.ok) {
-                    // Successfully deleted account
-                    logout(); // Log out after successful deletion
-                    alert("Your account has been successfully deleted");
+                    logout();
+                    toast.success("Your account has been successfully deleted");
                 } else {
-                    // Try to get error message from response
                     let errorMsg = "There was an issue deleting your account. Please try again.";
                     try {
                         const errorData = await response.json();
                         errorMsg = errorData.message || errorMsg;
-                    } catch (e) {
-                        // If response can't be parsed as JSON, use default error message
-                    }
-                    alert(errorMsg);
+                    } catch (e) { }
+                    toast.error(errorMsg);
                 }
             } catch (error) {
                 console.error("Delete account error:", error);
-                alert("Failed to delete account: " + error.message);
+                toast.error("Failed to delete account: " + error.message);
             } finally {
                 setIsDeleting(false);
                 if (onClose) onClose();
             }
-        } else {
-            if (onClose) onClose();
-        }
+        };
     };
 
     return (
@@ -108,7 +140,7 @@ const PopupInfo = ({ onClose }) => {
                             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
                             <circle r={3} cy={12} cx={12} />
                         </svg>
-                        <p className="label">Settings</p>
+                        <p className="label">Profile</p>
                     </li>
                     <li className="element delete" onClick={handleDelete} disabled={isDeleting}>
                         <svg className="lucide lucide-trash-2" strokeLinejoin="round" strokeLinecap="round" strokeWidth={2} stroke="#7e8590" fill="none" viewBox="0 0 24 24" height={20} width={20} xmlns="http://www.w3.org/2000/svg">
