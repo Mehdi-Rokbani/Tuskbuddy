@@ -76,7 +76,7 @@ const UserProjectsPage = () => {
             if (response.ok) {
                 toast.success('Request accepted successfully');
                 fetchreq();
-                fetchUserProjects(); // Refresh projects in case team changed
+                fetchUserProjects();
             } else {
                 toast.error(data.message || 'Failed to accept request');
                 console.error('Error:', data.message);
@@ -112,96 +112,138 @@ const UserProjectsPage = () => {
         }
     };
 
-    // Add this to ProjectCard's onDelete/onUpdate props
-    const showProjectToast = (message, type = 'success') => {
-        toast[type](message);
-    };
-
     return (
         <>
-            <div className='header'><Header /></div>
-            <section className="projects-section">
-                <div className="projects-header">
-                    <h1 className='H1'>My Projects</h1>
-                    <Link
-                        to="/projectfrom"
-                        className="create-project-btn"
-                        onClick={() => toast.info('Redirecting to project creation')}
-                    >
-                        <p>{projects.length > 0 ? '+ Create New Project' : '+ Create Your First Project'}</p>
-                    </Link>
-                </div>
+            <Header />
+            <div className="user-projects-container">
+                <div className="projects-section">
+                    <div className="projects-header">
 
-                {error && (
-                    <div className="error-message">
-                        {toast.error(error)}
+                        <Link
+                            to="/projectfrom"
+                            className="create-project-btn"
+                        >
+                            {projects.length > 0 ? '+ Create New Project' : '+ Create Your First Project'}
+                        </Link>
                     </div>
-                )}
 
-                <div className="projects-container">
-                    {projects.length > 0 ? (
-                        projects.map((project) => (
-                            <ProjectCard
-                                key={project._id}
-                                project={project}
-                                onUpdated={() => {
-                                    fetchUserProjects();
-                                    toast.success('Project updated successfully');
-                                }}
-                                onDeleted={() => {
-                                    fetchUserProjects();
-                                    toast.success('Project deleted successfully');
-                                }}
-                            />
-                        ))
-                    ) : (
-                        <div className="no-projects">
-                            <p>You have no projects yet.</p>
+                    {error && (
+                        <div className="error-message">
+                            {toast.error(error)}
                         </div>
                     )}
-                </div>
 
-                <div className="request-list">
-                    <h1 className="request-title">Requests</h1>
-                    {requests.length > 0 ? (
-                        requests.map((req) => (
-                            <div key={req._id} className="request-item">
-                                <div className="request-info">
-                                    <p><strong>Project:</strong> {req.projectId.title}</p>
-                                    <p><strong>Skills:</strong> {req.skills}</p>
-                                    <p><strong>Username:</strong> {req.freelancerId.username}</p>
-                                    <p><strong>Email:</strong> {req.freelancerId.email}</p>
-                                    <p><strong>Status:</strong>
-                                        <span className={`status-${req.status.toLowerCase()}`}>
-                                            {req.status}
-                                        </span>
-                                    </p>
-                                </div>
-                                {req.status === 'pending' && (
-                                    <div className="request-actions">
-                                        <button
-                                            className="accept-btn"
-                                            onClick={() => handleAccept(req._id)}
-                                        >
-                                            Accept
-                                        </button>
-                                        <button
-                                            className="refuse-btn"
-                                            onClick={() => handleRefuse(req._id)}
-                                        >
-                                            Refuse
-                                        </button>
-                                    </div>
-                                )}
+                    <div className="projects-grid">
+                        {projects.length > 0 ? (
+                            projects.map((project) => (
+                                <ProjectCard
+                                    key={project._id}
+                                    project={project}
+                                    onUpdated={() => {
+                                        fetchUserProjects();
+                                        toast.success('Project updated successfully');
+                                    }}
+                                    onDeleted={() => {
+                                        fetchUserProjects();
+                                        toast.success('Project deleted successfully');
+                                    }}
+                                />
+                            ))
+                        ) : (
+                            <div className="no-projects">
+                                <p>You have no projects yet.</p>
                             </div>
-                        ))
+                        )}
+                    </div>
+                </div>
+
+                <div className="requests-section">
+                    <h2 className="section-title">Project Requests</h2>
+                    {requests.length > 0 ? (
+                        <div className="requests-table-container">
+                            <table className="requests-table">
+                                <thead>
+                                    <tr>
+                                        <th className="col-project">Project</th>
+                                        <th className="col-freelancer">Freelancer</th>
+                                        <th className="col-skills">Skills</th>
+                                        <th className="col-email">Email</th>
+                                        <th className="col-status">Status</th>
+                                        <th className="col-actions">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {requests.map((req) => (
+                                        <tr key={req._id} className="request-row">
+                                            <td>
+                                                <div className="project-title">{req.projectId.title}</div>
+                                            </td>
+                                            <td>
+                                                <div className="freelancer-info">
+                                                    <span className="username">{req.freelancerId.username}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="skills-container">
+                                                    <div className="skills-tooltip">
+                                                        {req.skills.slice(0, 2).join(', ')}
+                                                        {req.skills.length > 2 && (
+                                                            <span className="skills-more">+{req.skills.length - 2}</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="skills-full-tooltip">
+                                                        {req.skills.join(', ')}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <a href={`mailto:${req.freelancerId.email}`} className="email-link">
+                                                    {req.freelancerId.email}
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <span className={`status-pill status-${req.status.toLowerCase()}`}>
+                                                    {req.status}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {req.status === 'pending' && (
+                                                    <div className="action-buttons">
+                                                        <button
+                                                            className="action-btn accept-btn"
+                                                            onClick={() => handleAccept(req._id)}
+                                                            title="Accept request"
+                                                        >
+                                                            ✓
+                                                        </button>
+                                                        <button
+                                                            className="action-btn refuse-btn"
+                                                            onClick={() => handleRefuse(req._id)}
+                                                            title="Reject request"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     ) : (
-                        <div className="no-requests">
-                            <p>You have no requests yet.</p>
+                        <div className="no-requests-message">
+                            <div className="empty-state">
+                                <svg className="empty-icon" viewBox="0 0 24 24">
+                                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                                </svg>
+                                <h3>No pending requests</h3>
+                                <p>You don't have any project requests at this time</p>
+                            </div>
                         </div>
                     )}
                 </div>
-            </section>
+            </div>
         </>
     );
 };

@@ -8,6 +8,16 @@ import 'react-toastify/dist/ReactToastify.css';
 import '../assets/style/TeamTable.css';
 import { Link } from 'react-router-dom';
 import emptyTeamsImage from '../assets/images/empty-teams.svg';
+import {
+    FiGithub,
+    FiTrash2,
+    FiUserX,
+    FiPlus,
+    FiCheck,
+    FiX,
+    FiEdit2
+} from 'react-icons/fi';
+import { BsThreeDotsVertical } from 'react-icons/bs';
 
 const TeamTable = () => {
     const navigate = useNavigate();
@@ -25,6 +35,13 @@ const TeamTable = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [confirmRemove, setConfirmRemove] = useState(null);
     const [confirmDeleteTask, setConfirmDeleteTask] = useState(null);
+    const [editingTask, setEditingTask] = useState(null);
+    const [editTaskData, setEditTaskData] = useState({
+        title: '',
+        description: '',
+        startdate: '',
+        deadline: ''
+    });
 
     const fetchTeams = useCallback(async () => {
         try {
@@ -66,6 +83,19 @@ const TeamTable = () => {
             return skills.length > 0 ? skills.join(', ') : 'N/A';
         }
         return skills || 'N/A';
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        try {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        } catch {
+            return 'Invalid Date';
+        }
     };
 
     const fetchMemberTasks = async (memberId, projectId, teamId) => {
@@ -238,7 +268,7 @@ const TeamTable = () => {
     if (ownedTeams.length === 0) {
         return (
             <>
-                <div className='header'><Header /></div>
+                <Header />
                 <div className="empty-teams-container">
                     <img src={emptyTeamsImage} alt="No teams" className="empty-teams-image" />
                     <h2>You don't have any teams yet</h2>
@@ -267,299 +297,287 @@ const TeamTable = () => {
 
     return (
         <>
-            <div className='header'><Header /></div>
+            <Header />
+            <div className="team-management-container">
+                <div className="dashboard-header">
+                    <h1>Team Management Dashboard</h1>
+                    <div className="dashboard-stats">
+                        <div className="stat-card">
+                            <h3>Total Teams</h3>
+                            <p>{ownedTeams.length}</p>
+                        </div>
+                        
+                        <div className="stat-card">
+                            <h3>Active Tasks</h3>
+                            <p>{Object.values(memberTasks).flat().length}</p>
+                        </div>
+                    </div>
+                </div>
 
-            <div className="team-dashboard">
                 {ownedTeams.map(team => (
-                    <div key={team._id} className="team-card">
+                    <div key={team._id} className="team-section">
                         <div className="team-header">
-                            <h3 className="team-title">{team.projectId?.title || 'Untitled Project'}</h3>
-                            <div className="team-meta">
-                                <span>{team.members.length} members</span>
+                            <div className="team-title-section">
+                                <h2>{team.projectId?.title || 'Untitled Project'}</h2>
+                                <div className="team-meta">
+                                    <span className="team-id">ID: {team._id.slice(-6)}</span>
+                                    <span className="team-members">{team.members.length} member{team.members.length !== 1 ? 's' : ''}</span>
+                                </div>
                             </div>
+                            <Link to={`/projects/${team.projectId?._id}`} className="view-project-btn">
+                                View Project
+                            </Link>
                         </div>
 
-                        <div className="team-members-table">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Member</th>
-                                        <th>Role</th>
-                                        <th>Tasks</th>
-                                        <th>Status</th>
-                                        <th>GitHub</th>
-                                        <th>Verification</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {/* Owner Row */}
-                                    <tr className="owner-row">
-                                        <td>
-                                            <div className="member-info">
-                                                <span className="member-name">{team.ownerId.username}</span>
-                                                <span className="member-email">{team.ownerId.email}</span>
+                        <div className="team-members-container">
+                            <div className="member-card owner-card">
+                                <div className="member-avatar">
+                                    {team.ownerId.username.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="member-details">
+                                    <h3>{team.ownerId.username}</h3>
+                                    <p className="member-email">{team.ownerId.email}</p>
+                                    <span className="role-badge owner">Owner</span>
+                                </div>
+                            </div>
+
+                            {team.members.map((member, idx) => {
+                                if (member._id === team.ownerId._id) return null;
+                                const taskKey = `${team._id}-${member._id}-${team.projectId._id}`;
+                                const memberTaskList = memberTasks[taskKey] || [];
+
+                                return (
+                                    <div key={member._id} className="member-card">
+                                        <div className="member-info">
+                                            <div className="member-avatar">
+                                                {member.username.charAt(0).toUpperCase()}
                                             </div>
-                                        </td>
-                                        <td><span className="role-badge owner">Owner</span></td>
-                                        <td>—</td>
-                                        <td>—</td>
-                                        <td>—</td>
-                                        <td>—</td>
-                                        <td>—</td>
-                                    </tr>
+                                            <div className="member-details">
+                                                <h3>{member.username}</h3>
+                                                <p className="member-email">{member.email}</p>
+                                                <p className="member-skills">{formatSkills(member.skills)}</p>
+                                                <span className="role-badge">{member.role || 'Member'}</span>
+                                            </div>
+                                        </div>
 
-                                    {/* Members */}
-                                    {team.members.map((member, idx) => {
-                                        if (member._id === team.ownerId._id) return null;
-                                        const taskKey = `${team._id}-${member._id}-${team.projectId._id}`;
-                                        const memberTaskList = memberTasks[taskKey] || [];
+                                        <div className="member-tasks">
+                                            {memberTaskList.length > 0 ? (
+                                                memberTaskList.map(task => (
+                                                    <div key={task._id} className="task-card">
+                                                        <div className="task-header">
+                                                            <h4>{task.title}</h4>
+                                                            <span className={`status-badge ${getStatusClass(task.status)}`}>
+                                                                {task.status?.charAt(0).toUpperCase() + task.status?.slice(1)}
+                                                            </span>
+                                                        </div>
 
-                                        return (
-                                            <React.Fragment key={`${member._id}-${team._id}`}>
-                                                {memberTaskList.length > 0 ? (
-                                                    memberTaskList.map((task, taskIdx) => (
-                                                        <tr key={`${team._id}-${task._id}`} className={idx % 2 === 0 ? 'even-row' : 'odd-row'}>
-                                                            {taskIdx === 0 && (
-                                                                <>
-                                                                    <td rowSpan={memberTaskList.length}>
-                                                                        <div className="member-info">
-                                                                            <span className="member-name">{member.username}</span>
-                                                                            <span className="member-email">{member.email}</span>
-                                                                            <div className="member-skills">{formatSkills(member.skills)}</div>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td rowSpan={memberTaskList.length}>
-                                                                        <span className="role-badge">{member.role || 'Member'}</span>
-                                                                    </td>
-                                                                </>
-                                                            )}
-                                                            <td className="task-title">{task.title}</td>
-                                                            <td>
-                                                                <span className={`status-badge ${getStatusClass(task.status)}`}>
-                                                                    {task.status?.charAt(0).toUpperCase() + task.status?.slice(1)}
-                                                                </span>
-                                                            </td>
-                                                            <td>
+                                                        <div className="task-dates">
+                                                            <span>Start: {formatDate(task.startdate)}</span>
+                                                            <span>Deadline: {formatDate(task.deadline)}</span>
+                                                        </div>
+
+                                                        {task.description && (
+                                                            <p className="task-description">{task.description}</p>
+                                                        )}
+
+                                                        <div className="task-footer">
+                                                            <div className="github-section">
                                                                 {task.githubUrl ? (
-                                                                    <a href={task.githubUrl} target="_blank" rel="noopener noreferrer" className="github-link">
-                                                                        View Code
+                                                                    <a
+                                                                        href={task.githubUrl}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="github-link"
+                                                                    >
+                                                                        <FiGithub /> View on GitHub
                                                                     </a>
                                                                 ) : (
-                                                                    <span>Not provided</span>
+                                                                    <span className="no-github">No GitHub link</span>
                                                                 )}
-                                                            </td>
-                                                            <td className={getVerificationClass(task.verified)}>
+                                                            </div>
+
+                                                            <div className={`verification-status ${getVerificationClass(task.verified)}`}>
                                                                 {task.status === 'completed' ? (
                                                                     !task.verified || task.verified.status === null ? (
                                                                         <div className="verification-actions">
                                                                             <button
                                                                                 className="approve-btn"
                                                                                 onClick={() => verifyTask(task._id, true, member._id, team.projectId._id, team._id)}
+                                                                                title="Approve"
                                                                             >
-                                                                                ✓
+                                                                                <FiCheck />
                                                                             </button>
                                                                             <button
                                                                                 className="reject-btn"
                                                                                 onClick={() => verifyTask(task._id, false, member._id, team.projectId._id, team._id)}
+                                                                                title="Reject"
                                                                             >
-                                                                                ✕
+                                                                                <FiX />
                                                                             </button>
                                                                         </div>
                                                                     ) : (
                                                                         <span>{task.verified.status ? '✓ Approved' : '✕ Rejected'}</span>
                                                                     )
                                                                 ) : '—'}
-                                                            </td>
-                                                            <td>
-                                                                <div className="task-actions">
-                                                                    <button
-                                                                        className="assign-task-btn"
-                                                                        onClick={() => toggleTaskForm(member._id)}
-                                                                    >
-                                                                        + Task
-                                                                    </button>
+                                                            </div>
+                                                        </div>
 
-                                                                    {confirmDeleteTask === task._id ? (
-                                                                        <div className="delete-confirmation">
-                                                                            <p>Delete this task?</p>
-                                                                            <div>
-                                                                                <button
-                                                                                    className="confirm-btn"
-                                                                                    onClick={() => deleteTask(task._id, member._id, team.projectId._id, team._id)}
-                                                                                >
-                                                                                    Yes
-                                                                                </button>
-                                                                                <button
-                                                                                    className="cancel-btn"
-                                                                                    onClick={() => setConfirmDeleteTask(null)}
-                                                                                >
-                                                                                    No
-                                                                                </button>
-                                                                            </div>
-                                                                        </div>
-                                                                    ) : (
+                                                        <div className="task-actions">
+                                                            {confirmDeleteTask === task._id ? (
+                                                                <div className="confirmation-dialog">
+                                                                    <p>Delete this task?</p>
+                                                                    <div>
                                                                         <button
-                                                                            className="delete-task-btn"
+                                                                            className="confirm-btn"
+                                                                            onClick={() => deleteTask(task._id, member._id, team.projectId._id, team._id)}
+                                                                        >
+                                                                            Yes
+                                                                        </button>
+                                                                        <button
+                                                                            className="cancel-btn"
+                                                                            onClick={() => setConfirmDeleteTask(null)}
+                                                                        >
+                                                                            No
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="dropdown-actions">
+                                                                    <button className="dropdown-toggle">
+                                                                        <BsThreeDotsVertical />
+                                                                    </button>
+                                                                    <div className="dropdown-menu">
+                                                                        <button
+                                                                            className="dropdown-item"
                                                                             onClick={() => setConfirmDeleteTask(task._id)}
                                                                         >
-                                                                            Delete
+                                                                            <FiTrash2 /> Delete Task
                                                                         </button>
-                                                                    )}
-
-                                                                    {confirmRemove === `${member._id}-${team._id}` && (
-                                                                        <div className="remove-confirmation">
-                                                                            <p>Remove user?</p>
-                                                                            <div>
-                                                                                <button
-                                                                                    className="confirm-btn"
-                                                                                    onClick={() => removeMember(team._id, member._id, member.username)}
-                                                                                >
-                                                                                    Yes
-                                                                                </button>
-                                                                                <button
-                                                                                    className="cancel-btn"
-                                                                                    onClick={() => setConfirmRemove(null)}
-                                                                                >
-                                                                                    No
-                                                                                </button>
-                                                                            </div>
-                                                                        </div>
-                                                                    )}
-
-                                                                    <button
-                                                                        className="remove-btn"
-                                                                        onClick={() => setConfirmRemove(`${member._id}-${team._id}`)}
-                                                                    >
-                                                                        Remove User
-                                                                    </button>
+                                                                    </div>
                                                                 </div>
-                                                            </td>
-                                                        </tr>
-                                                    ))
-                                                ) : (
-                                                    <tr className={idx % 2 === 0 ? 'even-row' : 'odd-row'}>
-                                                        <td>
-                                                            <div className="member-info">
-                                                                <span className="member-name">{member.username}</span>
-                                                                <span className="member-email">{member.email}</span>
-                                                                <div className="member-skills">{formatSkills(member.skills)}</div>
-                                                            </div>
-                                                        </td>
-                                                        <td><span className="role-badge">{member.role || 'Member'}</span></td>
-                                                        <td colSpan="2">No tasks assigned</td>
-                                                        <td>—</td>
-                                                        <td>—</td>
-                                                        <td>
-                                                            <div className="member-actions">
-                                                                <button
-                                                                    className="assign-task-btn"
-                                                                    onClick={() => toggleTaskForm(member._id)}
-                                                                >
-                                                                    + Task
-                                                                </button>
-                                                                {confirmRemove === `${member._id}-${team._id}` ? (
-                                                                    <div className="remove-confirmation">
-                                                                        <p>Remove {member.username}?</p>
-                                                                        <div>
-                                                                            <button
-                                                                                className="confirm-btn"
-                                                                                onClick={() => removeMember(team._id, member._id, member.username)}
-                                                                            >
-                                                                                Yes
-                                                                            </button>
-                                                                            <button
-                                                                                className="cancel-btn"
-                                                                                onClick={() => setConfirmRemove(null)}
-                                                                            >
-                                                                                No
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <button
-                                                                        className="remove-btn"
-                                                                        onClick={() => setConfirmRemove(`${member._id}-${team._id}`)}
-                                                                    >
-                                                                        Remove
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                )}
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="no-tasks">
+                                                    <p>No tasks assigned</p>
+                                                    <button
+                                                        className="assign-task-btn"
+                                                        onClick={() => toggleTaskForm(member._id)}
+                                                    >
+                                                        <span className="plus-icon"></span> Assign Task
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
 
-                                                {showTaskFormFor === member._id && (
-                                                    <tr className="task-form-row">
-                                                        <td colSpan="7">
-                                                            <div className="task-form-container">
-                                                                <h4>Assign New Task to {member.username}</h4>
-                                                                <form onSubmit={(e) => {
-                                                                    e.preventDefault();
-                                                                    handleTaskSubmit(member._id, team.projectId._id, team._id);
-                                                                }}>
-                                                                    <div className="form-grid">
-                                                                        <div className="form-group">
-                                                                            <label>Task Title*</label>
-                                                                            <input
-                                                                                type="text"
-                                                                                value={newTask.title}
-                                                                                onChange={e => setNewTask(prev => ({ ...prev, title: e.target.value }))}
-                                                                                required
-                                                                                placeholder="Enter task title"
-                                                                            />
-                                                                        </div>
-                                                                        <div className="form-group">
-                                                                            <label>Start Date*</label>
-                                                                            <input
-                                                                                type="date"
-                                                                                value={newTask.startdate}
-                                                                                onChange={e => setNewTask(prev => ({ ...prev, startdate: e.target.value }))}
-                                                                                required
-                                                                            />
-                                                                        </div>
-                                                                        <div className="form-group">
-                                                                            <label>Deadline*</label>
-                                                                            <input
-                                                                                type="date"
-                                                                                value={newTask.deadline}
-                                                                                onChange={e => setNewTask(prev => ({ ...prev, deadline: e.target.value }))}
-                                                                                required
-                                                                            />
-                                                                        </div>
-                                                                        <div className="form-group wide">
-                                                                            <label>Description</label>
-                                                                            <textarea
-                                                                                value={newTask.description}
-                                                                                onChange={e => setNewTask(prev => ({ ...prev, description: e.target.value }))}
-                                                                                placeholder="Task details..."
-                                                                                rows="3"
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="form-actions">
-                                                                        <button type="submit" className="submit-btn">
-                                                                            Assign Task
-                                                                        </button>
-                                                                        <button
-                                                                            type="button"
-                                                                            className="cancel-btn"
-                                                                            onClick={() => setShowTaskFormFor(null)}
-                                                                        >
-                                                                            Cancel
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </React.Fragment>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                                        <div className="member-actions">
+                                            {confirmRemove === `${member._id}-${team._id}` ? (
+                                                <div className="confirmation-dialog">
+                                                    <p>Remove {member.username}?</p>
+                                                    <div>
+                                                        <button
+                                                            className="confirm-btn"
+                                                            onClick={() => removeMember(team._id, member._id, member.username)}
+                                                        >
+                                                            Yes
+                                                        </button>
+                                                        <button
+                                                            className="cancel-btn"
+                                                            onClick={() => setConfirmRemove(null)}
+                                                        >
+                                                            No
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    className="remove-member-btn"
+                                                    onClick={() => setConfirmRemove(`${member._id}-${team._id}`)}
+                                                    title="Remove member"
+                                                >
+                                                    <FiUserX /> Remove
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
+
+                        {team.members.some(member => showTaskFormFor === member._id && member._id !== team.ownerId._id) && (
+                            <div className="task-form-modal">
+                                <div className="task-form-container">
+                                    <div className="form-header">
+                                        <h3>Assign New Task</h3>
+                                        <button
+                                            className="close-form-btn"
+                                            onClick={() => setShowTaskFormFor(null)}
+                                        >
+                                            &times;
+                                        </button>
+                                    </div>
+                                    <form onSubmit={(e) => {
+                                        e.preventDefault();
+                                        const member = team.members.find(m => m._id === showTaskFormFor);
+                                        handleTaskSubmit(member._id, team.projectId._id, team._id);
+                                    }}>
+                                        <div className="form-grid">
+                                            <div className="form-group">
+                                                <label>Task Title*</label>
+                                                <input
+                                                    type="text"
+                                                    value={newTask.title}
+                                                    onChange={e => setNewTask(prev => ({ ...prev, title: e.target.value }))}
+                                                    required
+                                                    placeholder="Enter task title"
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Start Date*</label>
+                                                <input
+                                                    type="date"
+                                                    value={newTask.startdate}
+                                                    onChange={e => setNewTask(prev => ({ ...prev, startdate: e.target.value }))}
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Deadline*</label>
+                                                <input
+                                                    type="date"
+                                                    value={newTask.deadline}
+                                                    onChange={e => setNewTask(prev => ({ ...prev, deadline: e.target.value }))}
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="form-group full-width">
+                                                <label>Description</label>
+                                                <textarea
+                                                    value={newTask.description}
+                                                    onChange={e => setNewTask(prev => ({ ...prev, description: e.target.value }))}
+                                                    placeholder="Task details..."
+                                                    rows="3"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="form-actions">
+                                            <button type="submit" className="submit-btn">
+                                                Assign Task
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="cancel-btn"
+                                                onClick={() => setShowTaskFormFor(null)}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>

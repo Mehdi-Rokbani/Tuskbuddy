@@ -3,7 +3,6 @@ import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import '../assets/style/Project-form.css';
-import '../assets/style/Header.css';
 
 const CreateProjectForm = () => {
     const { user } = useContext(AuthContext);
@@ -16,6 +15,7 @@ const CreateProjectForm = () => {
         description: ''
     });
     const [error, setError] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
 
     const skillOptions = [
@@ -51,14 +51,19 @@ const CreateProjectForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
+        setError(null);
 
+        // Validation
         if (formData.selectedSkills.length === 0) {
             setError("Please select at least one technology");
+            setIsSubmitting(false);
             return;
         }
 
         if (formData.nbmembers < 1 || formData.nbmembers > 20) {
             setError("Number of members must be between 1 and 20");
+            setIsSubmitting(false);
             return;
         }
 
@@ -84,121 +89,153 @@ const CreateProjectForm = () => {
             if (!response.ok) {
                 setError(json.error || "Something went wrong");
             } else {
-                setError(null);
                 navigate('/myproject');
             }
         } catch (err) {
             setError("Network error. Please try again.");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     return (
         <>
-            <div className='header'>
-                <Header />
-            </div>
-            <div className="page-container">
-                <div className="form-wrapper">
-                    <div className="project-form-container">
-                        <h1>Create your project</h1>
-                        <p>Turn your ideas into action—create your project now!</p>
-                        <form onSubmit={handleSubmit}>
-                            {/* Title Field */}
-                            <div className="form-field">
-                                <label>Project Name</label>
-                                <input
-                                    type="text"
-                                    name="title"
-                                    value={formData.title}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
+            <Header />
+            <div className="project-form-page">
+                <div className="form-container">
+                    <div className="form-header">
+                        <h1>Create New Project</h1>
+                        <p className="subtitle">Turn your ideas into action—start by filling out the form below</p>
+                    </div>
 
-                            {/* Members Field */}
-                            <div className="form-field">
-                                <label>Members Needed (1-20)</label>
+                    <form onSubmit={handleSubmit} className="project-form">
+                        {/* Project Name */}
+                        <div className="form-group">
+                            <label htmlFor="title">Project Name</label>
+                            <input
+                                type="text"
+                                id="title"
+                                name="title"
+                                value={formData.title}
+                                onChange={handleChange}
+                                placeholder="e.g. E-commerce Website Redesign"
+                                required
+                            />
+                        </div>
+
+                        {/* Project Description */}
+                        <div className="form-group">
+                            <label htmlFor="description">Project Description</label>
+                            <textarea
+                                id="description"
+                                name="description"
+                                value={formData.description}
+                                onChange={handleChange}
+                                placeholder="Describe your project goals, requirements, and any other relevant details..."
+                                rows="5"
+                                required
+                            />
+                        </div>
+
+                        {/* Team Size */}
+                        <div className="form-group">
+                            <label htmlFor="nbmembers">Team Members Needed</label>
+                            <div className="range-container">
                                 <input
-                                    type="number"
+                                    type="range"
+                                    id="nbmembers"
                                     name="nbmembers"
                                     min="1"
                                     max="20"
                                     value={formData.nbmembers}
                                     onChange={handleChange}
+                                />
+                                <span className="range-value">{formData.nbmembers}</span>
+                            </div>
+                        </div>
+
+                        {/* Project Timeline */}
+                        <div className="form-group dual-inputs">
+                            <div className="date-input">
+                                <label htmlFor="startDate">Start Date</label>
+                                <input
+                                    type="date"
+                                    id="startDate"
+                                    name="startDate"
+                                    value={formData.startDate}
+                                    onChange={handleChange}
+                                    min={new Date().toISOString().split('T')[0]}
                                     required
                                 />
                             </div>
-
-                            {/* Dates Fields */}
-                            <div className="dates-container">
-                                <div className="form-field">
-                                    <label>Start Date</label>
-                                    <input
-                                        type="date"
-                                        name="startDate"
-                                        value={formData.startDate}
-                                        onChange={handleChange}
-                                        
-                                        required
-                                    />
-                                </div>
-                                <div className="form-field">
-                                    <label>Deadline</label>
-                                    <input
-                                        type="date"
-                                        name="deadline"
-                                        value={formData.deadline}
-                                        onChange={handleChange}
-                                        min={formData.startDate || new Date().toISOString().split('T')[0]}
-                                        required
-                                    />
-                                </div>
+                            <div className="date-input">
+                                <label htmlFor="deadline">Deadline</label>
+                                <input
+                                    type="date"
+                                    id="deadline"
+                                    name="deadline"
+                                    value={formData.deadline}
+                                    onChange={handleChange}
+                                    min={formData.startDate || new Date().toISOString().split('T')[0]}
+                                    required
+                                />
                             </div>
+                        </div>
 
-                            {/* Skills Field */}
-                            <div className="form-field">
-                                <label>Technologies Needed</label>
-                                <div className="skills-selector">
-                                    <select
-                                        onChange={handleSkillSelect}
-                                        value="default"
-                                    >
-                                        <option value="default" disabled>Select skills</option>
-                                        {skillOptions.filter(skill => !formData.selectedSkills.includes(skill)).map(skill => (
-                                            <option key={skill} value={skill}>{skill}</option>
-                                        ))}
-                                    </select>
-                                    <div className="selected-skills">
-                                        {formData.selectedSkills.map(skill => (
+                        {/* Required Technologies */}
+                        <div className="form-group">
+                            <label>Required Technologies</label>
+                            <div className="skills-selector">
+                                <select
+                                    onChange={handleSkillSelect}
+                                    value="default"
+                                    className="skills-dropdown"
+                                >
+                                    <option value="default" disabled>Select technologies</option>
+                                    {skillOptions.filter(skill => !formData.selectedSkills.includes(skill)).map(skill => (
+                                        <option key={skill} value={skill}>{skill}</option>
+                                    ))}
+                                </select>
+                                <div className="selected-skills">
+                                    {formData.selectedSkills.length > 0 ? (
+                                        formData.selectedSkills.map(skill => (
                                             <div key={skill} className="skill-tag">
                                                 {skill}
                                                 <button
                                                     type="button"
+                                                    className="remove-skill"
                                                     onClick={() => removeSkill(skill)}
                                                 >
                                                     ×
                                                 </button>
                                             </div>
-                                        ))}
-                                    </div>
+                                        ))
+                                    ) : (
+                                        <span className="no-skills">No technologies selected</span>
+                                    )}
                                 </div>
                             </div>
+                        </div>
 
-                            {/* Description Field */}
-                            <div className="form-field">
-                                <label>Project Description</label>
-                                <textarea
-                                    name="description"
-                                    value={formData.description}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
+                        {error && <div className="error-message">{error}</div>}
 
-                            <button type="submit" className="submit-btn">Create Project</button>
-                            {error && <div className="error-message">{error}</div>}
-                        </form>
-                    </div>
+                        <div className="form-actions">
+                            <button 
+                                type="submit" 
+                                className="submit-button"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <span className="spinner"></span>
+                                        Creating...
+                                    </>
+                                ) : (
+                                    "Create Project"
+                                )}
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </>

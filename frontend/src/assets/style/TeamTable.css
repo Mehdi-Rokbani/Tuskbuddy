@@ -1,103 +1,168 @@
-/* TeamTable.css */
-.header {
-    margin-bottom: 20px;
+/* Base Styles */
+.team-management-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #2c3e50;
 }
 
-.team-dashboard {
-    padding: 20px;
+.dashboard-header {
+    margin-bottom: 2.5rem;
 }
 
-.team-card {
+.dashboard-header h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.dashboard-stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
     background: white;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 30px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    flex: 1;
+    text-align: center;
+}
+
+.stat-card h3 {
+    font-size: 1rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card p {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #3498db;
+    margin: 0;
+}
+
+/* Team Section */
+.team-section {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 3rem;
     overflow: hidden;
 }
 
 .team-header {
-    padding: 15px 20px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #eaeaea;
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-.team-title {
-    margin: 0;
-    color: #333;
-    font-size: 1.2rem;
-}
-
-.team-meta {
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.team-members-table {
-    overflow-x: auto;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th, td {
-    padding: 12px 15px;
-    text-align: left;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
     border-bottom: 1px solid #eaeaea;
 }
 
-th {
+.team-title-section h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #2c3e50;
+}
+
+.team-meta {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.view-project-btn {
+    background-color: #3498db;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.view-project-btn:hover {
+    background-color: #2980b9;
+}
+
+/* Members Container */
+.team-members-container {
+    padding: 1.5rem;
+}
+
+.member-card {
+    display: flex;
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    transition: box-shadow 0.2s;
+}
+
+.member-card:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.owner-card {
     background-color: #f8f9fa;
-    font-weight: 600;
-    color: #555;
-}
-
-tr:hover {
-    background-color: #f9f9f9;
-}
-
-.even-row {
-    background-color: #fafafa;
-}
-
-.odd-row {
-    background-color: white;
+    border-color: #dee2e6;
 }
 
 .member-info {
     display: flex;
-    flex-direction: column;
+    padding: 1.5rem;
+    width: 250px;
+    border-right: 1px solid #eaeaea;
 }
 
-.member-name {
-    font-weight: 600;
-    margin-bottom: 3px;
+.member-avatar {
+    width: 50px;
+    height: 50px;
+    background-color: #3498db;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-right: 1rem;
+}
+
+.member-details {
+    flex: 1;
+}
+
+.member-details h3 {
+    margin: 0 0 0.2rem;
+    font-size: 1.1rem;
 }
 
 .member-email {
-    color: #666;
     font-size: 0.85rem;
-    margin-bottom: 5px;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
 }
 
 .member-skills {
-    color: #555;
     font-size: 0.8rem;
-    font-style: italic;
+    color: #495057;
+    margin-bottom: 0.5rem;
 }
 
 .role-badge {
     display: inline-block;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
     font-weight: 500;
-    background-color: #e0e0e0;
-    color: #333;
+    background-color: #e9ecef;
+    color: #495057;
 }
 
 .role-badge.owner {
@@ -105,15 +170,38 @@ tr:hover {
     color: #155724;
 }
 
-.task-title {
-    font-weight: 500;
+.member-tasks {
+    flex: 1;
+    padding: 1.5rem;
+}
+
+.task-card {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.task-card:last-child {
+    margin-bottom: 0;
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.task-header h4 {
+    margin: 0;
+    font-size: 1rem;
 }
 
 .status-badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
     font-weight: 500;
 }
 
@@ -132,362 +220,366 @@ tr:hover {
     color: #155724;
 }
 
+.task-dates {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.task-description {
+    font-size: 0.9rem;
+    color: #495057;
+    margin: 0.5rem 0;
+}
+
+.task-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
 .github-link {
-    color: #007bff;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #3498db;
     text-decoration: none;
+    font-size: 0.85rem;
 }
 
 .github-link:hover {
     text-decoration: underline;
 }
 
-.github-input {
-    width: 100%;
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+.no-github {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.verification-status {
     font-size: 0.85rem;
 }
 
 .verification-actions {
     display: flex;
-    gap: 5px;
+    gap: 0.5rem;
 }
 
 .approve-btn, .reject-btn {
     border: none;
-    border-radius: 3px;
-    padding: 3px 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    font-size: 0.8rem;
 }
 
 .approve-btn {
-    background-color: #28a745;
-    color: white;
+    background-color: #d4edda;
+    color: #28a745;
 }
 
 .reject-btn {
-    background-color: #dc3545;
-    color: white;
+    background-color: #f8d7da;
+    color: #dc3545;
 }
 
 .verification-approved {
     color: #28a745;
-    font-weight: 500;
 }
 
 .verification-rejected {
     color: #dc3545;
-    font-weight: 500;
-}
-
-.task-actions {
-    display: flex;
-    justify-content: center;
-}
-
-.delete-task-btn {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: background-color 0.2s;
-}
-
-.delete-task-btn:hover {
-    background-color: #c82333;
-}
-
-.delete-confirmation {
-    background: #fff3f3;
-    padding: 5px;
-    border-radius: 4px;
-    text-align: center;
-}
-
-.delete-confirmation p {
-    margin: 0 0 5px 0;
-    color: #dc3545;
-    font-size: 0.8rem;
-}
-
-.delete-confirmation .confirm-btn {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 2px 6px;
-    border-radius: 3px;
-    cursor: pointer;
-    margin-right: 5px;
-    font-size: 0.7rem;
-}
-
-.delete-confirmation .cancel-btn {
-    background-color: #f0f0f0;
-    border: none;
-    padding: 2px 6px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 0.7rem;
 }
 
 .member-actions {
+    padding: 1.5rem;
     display: flex;
-    gap: 8px;
+    align-items: flex-start;
 }
 
-.assign-task-btn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
+.remove-member-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background-color: #f8f9fa;
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
     cursor: pointer;
-    font-size: 0.8rem;
+    transition: all 0.2s;
 }
 
-.assign-task-btn:hover {
-    background-color: #0069d9;
-}
-
-.remove-btn {
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.8rem;
-}
-
-.remove-btn:hover {
-    background-color: #5a6268;
-}
-
-.remove-confirmation {
-    background: #f8f9fa;
-    padding: 5px;
-    border-radius: 4px;
-}
-
-.remove-confirmation p {
-    margin: 0 0 5px 0;
-    font-size: 0.8rem;
-    color: #333;
-}
-
-.remove-confirmation .confirm-btn {
+.remove-member-btn:hover {
     background-color: #dc3545;
     color: white;
-    border: none;
-    padding: 2px 6px;
-    border-radius: 3px;
-    cursor: pointer;
-    margin-right: 5px;
-    font-size: 0.7rem;
 }
 
-.remove-confirmation .cancel-btn {
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    padding: 2px 6px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 0.7rem;
+.task-actions {
+    margin-top: 0.5rem;
+    display: flex;
+    justify-content: flex-end;
 }
 
-.task-form-row {
+.dropdown-toggle {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0.2rem;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    padding: 0.5rem 0;
+    z-index: 10;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.dropdown-item:hover {
     background-color: #f8f9fa;
 }
 
-.task-form-container {
-    padding: 15px;
+.dropdown-actions:hover .dropdown-menu {
+    display: block;
 }
 
-.task-form-container h4 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #333;
+/* Task Form */
+.task-form-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.task-form-container {
+    background-color: white;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.form-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.close-form-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #6c757d;
+    cursor: pointer;
+}
+
+form {
+    padding: 1.5rem;
 }
 
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    margin-bottom: 15px;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .form-group {
-    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
-.form-group.wide {
+.form-group.full-width {
     grid-column: span 2;
 }
 
 .form-group label {
-    display: block;
-    margin-bottom: 5px;
+    font-size: 0.9rem;
     font-weight: 500;
-    color: #555;
+    color: #495057;
 }
 
 .form-group input,
-.form-group select,
+.form-group textarea,
+.form-group select {
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
 .form-group textarea {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 0.9rem;
+    resize: vertical;
+    min-height: 100px;
 }
 
 .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
+    gap: 1rem;
 }
 
 .submit-btn {
     background-color: #28a745;
     color: white;
     border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
     cursor: pointer;
+}
+
+.cancel-btn {
+    background-color: white;
+    color: #495057;
+    border: 1px solid #ced4da;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* Confirmation Dialogs */
+.confirmation-dialog {
+    background-color: white;
+    border: 1px solid #eaeaea;
+    border-radius: 6px;
+    padding: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.confirmation-dialog p {
+    margin: 0 0 1rem;
     font-size: 0.9rem;
 }
 
-.submit-btn:hover {
-    background-color: #218838;
+.confirmation-dialog div {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.confirm-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
 }
 
 .cancel-btn {
     background-color: #6c757d;
     color: white;
     border: none;
-    padding: 8px 15px;
+    padding: 0.5rem 1rem;
     border-radius: 4px;
+    font-size: 0.85rem;
     cursor: pointer;
-    font-size: 0.9rem;
 }
 
-.cancel-btn:hover {
-    background-color: #5a6268;
-}
-
-.loading-container {
-    padding: 20px;
-    text-align: center;
-    color: #555;
-}
-
-.no-teams-message {
-    padding: 20px;
-    text-align: center;
-    color: #666;
-}
-
-.no-teams-container {
-    text-align: center;
-    padding: 40px 20px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    margin: 20px;
-}
-
-.no-teams-container h2 {
-    color: #333;
-    margin-bottom: 10px;
-}
-
-.no-teams-container p {
-    color: #666;
-    margin-bottom: 20px;
-}
-/* Empty State Styles */
+/* Empty State */
 .empty-teams-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     text-align: center;
-    padding: 40px 20px;
-    min-height: calc(100vh - 100px);
-    background-color: #f8f9fa;
+    padding: 4rem 2rem;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .empty-teams-image {
-    width: 300px;
+    width: 200px;
     height: auto;
-    margin-bottom: 30px;
+    margin-bottom: 2rem;
+    opacity: 0.8;
 }
 
 .empty-teams-container h2 {
-    font-size: 2rem;
-    color: #333;
-    margin-bottom: 15px;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
 }
 
 .empty-teams-container p {
-    font-size: 1.1rem;
-    color: #666;
-    margin-bottom: 30px;
-    max-width: 500px;
+    color: #6c757d;
+    margin-bottom: 2rem;
 }
 
 .empty-teams-actions {
     display: flex;
-    gap: 15px;
-    margin-bottom: 30px;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
 }
 
 .primary-btn {
-    background-color: #4a6bff;
+    background-color: #3498db;
     color: white;
     border: none;
-    padding: 12px 24px;
+    padding: 0.75rem 1.5rem;
     border-radius: 6px;
-    font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.primary-btn:hover {
-    background-color: #3a5bef;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .secondary-btn {
     background-color: white;
-    color: #4a6bff;
-    border: 2px solid #4a6bff;
-    padding: 12px 24px;
+    color: #495057;
+    border: 1px solid #ced4da;
+    padding: 0.75rem 1.5rem;
     border-radius: 6px;
-    font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.secondary-btn:hover {
-    background-color: #f0f4ff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .empty-teams-help {
     font-size: 0.9rem;
-    color: #888;
+    color: #6c757d;
 }
 
 .empty-teams-help a {
-    color: #4a6bff;
+    color: #3498db;
     text-decoration: none;
 }
 
@@ -495,12 +587,103 @@ tr:hover {
     text-decoration: underline;
 }
 
-/* Loading State Styles */
-.loading-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    font-size: 1.2rem;
-    color: #666;
+/* Responsive Design */
+@media (max-width: 992px) {
+    .dashboard-stats {
+        flex-direction: column;
+    }
+    
+    .member-card {
+        flex-direction: column;
+    }
+    
+    .member-info {
+        width: auto;
+        border-right: none;
+        border-bottom: 1px solid #eaeaea;
+    }
+    
+    .member-actions {
+        justify-content: flex-end;
+    }
 }
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-group.full-width {
+        grid-column: span 1;
+    }
+    
+    .team-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .view-project-btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .team-management-container {
+        padding: 0 1rem;
+    }
+    
+    .empty-teams-actions {
+        flex-direction: column;
+    }
+    
+    .task-dates {
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+}
+.assign-task-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .assign-task-btn:hover {
+    background-color: #2980b9;
+  }
+  
+  .plus-icon {
+    position: relative;
+    width: 14px;
+    height: 14px;
+  }
+  
+  .plus-icon::before,
+  .plus-icon::after {
+    content: '';
+    position: absolute;
+    background-color: white;
+  }
+  
+  .plus-icon::before {
+    width: 14px;
+    height: 2px;
+    top: 6px;
+    left: 0;
+  }
+  
+  .plus-icon::after {
+    width: 2px;
+    height: 14px;
+    top: 0;
+    left: 6px;
+  }
