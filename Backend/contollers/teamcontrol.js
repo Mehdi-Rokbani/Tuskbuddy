@@ -1,6 +1,46 @@
 const Team = require('../models/Team');
 const Project = require('../models/Project');
 
+const mongoose=require('mongoose')
+
+const getTeamById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Validate ID format first
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid team ID format'
+            });
+        }
+
+        const team = await Team.findById(id)
+            .populate('ownerId', 'username email role') // Only include specific fields
+            .populate('members', 'username email skills') // Only include specific fields
+            .populate('projectId', 'title description deadline'); // Only include specific fields
+
+        if (!team) {
+            return res.status(404).json({
+                success: false,
+                message: 'Team not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: team
+        });
+
+    } catch (error) {
+        console.error('Error fetching team:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching team',
+            error: error.message
+        });
+    }
+};
 
 
 // Remove member from a team
@@ -59,9 +99,30 @@ const getTeamsByUserId = async (req, res) => {
         res.status(500).json({ message: 'Server error while retrieving teams.' });
     }
 };
+const getTeamsByPoject = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const teams = await Team.find({projectId:id})
+            .populate('projectId')  // optional: populate project details
+            .populate('ownerId')    // optional: populate owner details
+            .populate('members');   // optional: populate member details
+
+        if (!teams || teams.length === 0) {
+            return res.status(404).json({ message: 'No teams found for this project.' });
+        }
+
+        res.status(200).json(teams);
+    } catch (err) {
+        console.error('Error fetching teams:', err);
+        res.status(500).json({ message: 'Server error while retrieving teams.' });
+    }
+};
 
 module.exports = {
     getTeamsByUserId,
     removeMemberFromTeam,
     getProjectsByMemberId,
+    getTeamById,
+    getTeamsByPoject
 };

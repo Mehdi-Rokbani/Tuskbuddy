@@ -6,7 +6,9 @@ const {
     updateTaskStatus,
     updateTaskGithubUrl, // Add new controller functions
     verifyTask,
-    getTasksByUserAndProject
+    getTasksByUserAndProject,
+    getTasksByTeam,getTasksByProject,
+    deleteTask
 } = require("../contollers/Taskcontroler");
 
 // Create a new task
@@ -27,4 +29,7 @@ router.patch("/:taskId/verify", verifyTask);
 
 router.get('/user/:userId/project/:projectId',getTasksByUserAndProject);
 
+router.get('/teams/:teamid',getTasksByTeam);
+router.get('/projecttask/:projectId',getTasksByProject)
+router.delete('/delete/:taskId',deleteTask)
 module.exports = router;

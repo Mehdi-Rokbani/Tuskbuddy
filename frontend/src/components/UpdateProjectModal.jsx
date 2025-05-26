@@ -7,7 +7,8 @@ const UpdateProjectModal = ({ project, onClose, onUpdate }) => {
     description: project.description,
     nbmembers: project.nbmembers,
     techused: project.techused,
-    deadline: project.deadline.slice(0, 10), // Ensure format for input type="date"
+    deadline: project.deadline.slice(0, 10),
+    startDate: project.startDate.slice(0, 10), // Ensure format for input type="date"
     status: project.status,
   });
 
@@ -30,6 +31,7 @@ const UpdateProjectModal = ({ project, onClose, onUpdate }) => {
           nbmembers: formData.nbmembers,
           techused: formData.techused,
           deadline: formData.deadline,
+          startDate: formData.startDate,
           status: formData.status,
         }),
       });
@@ -82,7 +84,18 @@ const UpdateProjectModal = ({ project, onClose, onUpdate }) => {
               onChange={handleChange}
               required
             />
-          </label>
+            </label>
+            <label>
+              Startdate:
+             <input
+              type="date"
+              name="startDate"
+              value={formData.startDate}
+              onChange={handleChange}
+              required
+            />
+            </label>
+          
           <label>
             Status:
             <select name="status" value={formData.status} onChange={handleChange} required>

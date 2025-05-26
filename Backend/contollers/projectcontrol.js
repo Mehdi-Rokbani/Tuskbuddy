@@ -114,7 +114,6 @@ const oneProject = async (req, res) => {
         res.status(500).json({ error: "Server error while fetching project." });
     }
 };
-
 // Update project
 const updateproject = async (req, res) => {
     const { id } = req.params;
@@ -125,17 +124,33 @@ const updateproject = async (req, res) => {
     }
 
     try {
-        // Validate updates if present
+        // Validate nbmembers if present
         if (updates.nbmembers && (updates.nbmembers < 1 || updates.nbmembers > 20)) {
             return res.status(400).json({ error: "Number of members must be between 1 and 20." });
         }
 
+        // Parse and validate deadline and startdate
+        let newDeadline, newStartDate;
+
         if (updates.deadline) {
-            const newDeadline = new Date(updates.deadline);
+            newDeadline = new Date(updates.deadline);
             if (isNaN(newDeadline.getTime())) {
                 return res.status(400).json({ error: "Invalid deadline format." });
             }
             updates.deadline = newDeadline;
+        }
+
+        if (updates.startDate) {
+            newStartDate = new Date(updates.startDate);
+            if (isNaN(newStartDate.getTime())) {
+                return res.status(400).json({ error: "Invalid start date format." });
+            }
+            updates.startDate = newStartDate;
+        }
+
+        // Ensure startdate is before deadline if both are provided
+        if (newStartDate && newDeadline && newStartDate >= newDeadline) {
+            return res.status(400).json({ error: "Start date must be before deadline." });
         }
 
         const updatedProject = await Project.findByIdAndUpdate(
@@ -157,6 +172,7 @@ const updateproject = async (req, res) => {
         });
     }
 };
+
 
 // Delete project
 const deleteProject = async (req, res) => {

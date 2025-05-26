@@ -7,9 +7,9 @@ const createRequest = async (req, res) => {
     try {
         // Validate content type
         if (!req.is('application/json')) {
-            return res.status(415).json({ 
-                error: 'Unsupported Media Type', 
-                message: 'Content-Type must be application/json' 
+            return res.status(415).json({
+                error: 'Unsupported Media Type',
+                message: 'Content-Type must be application/json'
             });
         }
 
@@ -20,7 +20,7 @@ const createRequest = async (req, res) => {
         if (!projectId) missingFields.push('projectId');
         if (!userId) missingFields.push('userId');
         if (!ownerId) missingFields.push('ownerId');
-        
+
         if (missingFields.length > 0) {
             return res.status(400).json({
                 error: 'Missing required fields',
@@ -32,9 +32,9 @@ const createRequest = async (req, res) => {
         // Check project existence and capacity
         const project0 = await project.findById(projectId);
         if (!project0) {
-            return res.status(404).json({ 
-                error: 'Not Found', 
-                message: 'Project not found' 
+            return res.status(404).json({
+                error: 'Not Found',
+                message: 'Project not found'
             });
         }
 
@@ -50,11 +50,11 @@ const createRequest = async (req, res) => {
         }
 
         // Check for existing request
-        const existingRequest = await Request.findOne({ 
-            projectId, 
-            freelancerId:userId 
+        const existingRequest = await Request.findOne({
+            projectId,
+            freelancerId: userId
         });
-        
+
         if (existingRequest) {
             return res.status(409).json({
                 error: 'Duplicate Request',
@@ -102,7 +102,7 @@ const createRequest = async (req, res) => {
                 field: err.path,
                 message: err.message
             }));
-            
+
             return res.status(400).json({
                 error: 'Validation Failed',
                 message: 'Invalid request data',
@@ -174,7 +174,7 @@ const acceptRequest = async (req, res) => {
             team = new Team({
                 projectId: request.projectId,
                 ownerId: request.projectOwnerId,
-                members: [request.userId]
+                members: [request.freelancerId]
             });
         } else {
             if (!team.members.includes(request.userId)) {

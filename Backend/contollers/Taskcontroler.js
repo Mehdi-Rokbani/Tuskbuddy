@@ -1,4 +1,5 @@
 const Task = require("../models/Tasks");
+const Team=require('../models/Team');
 const User = require("../models/User");
 const Project = require("../models/Project");
 const mongoose = require('mongoose');   
@@ -25,7 +26,7 @@ const createTask = async (req, res) => {
             });
         }
 
-        // Validate date formats and logic
+        // Validate date formats
         const startDateObj = new Date(startdate);
         const deadlineObj = new Date(deadline);
         
@@ -36,10 +37,11 @@ const createTask = async (req, res) => {
             });
         }
 
+        // Validate task date logic
         if (deadlineObj <= startDateObj) {
             return res.status(400).json({
                 success: false,
-                message: "Deadline must be after the start date"
+                message: "Task deadline must be after the start date"
             });
         }
 
@@ -52,12 +54,39 @@ const createTask = async (req, res) => {
             });
         }
 
-        // Validate project exists
+        // Validate project exists and get project dates
         const project = await Project.findById(projectId);
         if (!project) {
             return res.status(404).json({ 
                 success: false,
                 message: "Project not found" 
+            });
+        }
+
+        // Convert project dates to Date objects
+        const projectStartDate = new Date(project.startDate);
+        const projectDeadline = new Date(project.deadline);
+
+        // Validate task dates against project dates
+        if (startDateObj < projectStartDate) {
+            return res.status(400).json({
+                success: false,
+                message: "Task cannot start before the project start date",
+                details: {
+                    taskStartDate: startDateObj,
+                    projectStartDate: projectStartDate
+                }
+            });
+        }
+
+        if (deadlineObj > projectDeadline) {
+            return res.status(400).json({
+                success: false,
+                message: "Task cannot end after the project deadline",
+                details: {
+                    taskDeadline: deadlineObj,
+                    projectDeadline: projectDeadline
+                }
             });
         }
 
@@ -197,7 +226,54 @@ const verifyTask = async (req, res) => {
     }
 };
 
+// Taskcontroler.js
+const getTasksByTeam = async (req, res) => {
+    try {
+        const { teamId } = req.params;
+        
+        // First, get the team with populated members
+        const team = await Team.findById(teamId).populate('members');
+        
+        if (!team) {
+            return res.status(404).json({ 
+                success: false,
+                message: 'Team not found' 
+            });
+        }
 
+        // Check if team has members
+        if (!team.members || team.members.length === 0) {
+            return res.status(200).json({ 
+                success: true,
+                data: [],
+                message: 'No members in this team' 
+            });
+        }
+
+        // Get member IDs
+        const memberIds = team.members.map(m => m._id);
+
+        // Fetch tasks assigned to any team member
+        const tasks = await Task.find({
+            assignedTo: { $in: memberIds }
+        })
+        .populate("assignedTo")
+        .populate("projectId");
+
+        res.status(200).json({
+            success: true,
+            data: tasks
+        });
+
+    } catch (err) {
+        console.error('Error in getTasksByTeam:', err);
+        res.status(500).json({ 
+            success: false,
+            message: 'Server error while fetching team tasks',
+            error: err.message 
+        });
+    }
+};
 
 const getUserTasks = async (req, res) => {
     try {
@@ -305,6 +381,79 @@ const getTasksByUserAndProject = async (req, res) => {
         });
     }
 };
+const getTasksByProject = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+
+        
+
+        if (!mongoose.Types.ObjectId.isValid(projectId)) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Invalid project ID format'
+            });
+        }
+
+        
+        const tasks = await Task.find({
+            projectId: projectId
+        })
+        .populate('assignedTo', 'username')
+        .populate('projectId', 'title');
+
+        res.status(200).json({
+            success: true,
+            tasks
+        });
+
+    } catch (err) {
+        console.error('Error fetching tasks by project:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching tasks',
+            error: err.message
+        });
+    }
+};
+const deleteTask = async (req, res) => {
+    try {
+        const { taskId } = req.params;
+
+        // Vérifie si l'ID est bien formé
+        if (!mongoose.Types.ObjectId.isValid(taskId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid task ID"
+            });
+        }
+
+        // Vérifie que la tâche existe
+        const task = await Task.findById(taskId);
+        if (!task || task.isDeleted) {
+            return res.status(404).json({
+                success: false,
+                message: "Task not found"
+            });
+        }
+
+        // Marque comme supprimée
+        task.isDeleted = true;
+        await task.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Task deleted successfully (soft delete)"
+        });
+
+    } catch (error) {
+        console.error("Error deleting task:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error while deleting task",
+            error: error.message
+        });
+    }
+};
 
 
 module.exports = {
@@ -313,5 +462,8 @@ module.exports = {
     updateTaskStatus,
     updateTaskGithubUrl,
     verifyTask,
-    getTasksByUserAndProject        
+    getTasksByUserAndProject,
+    getTasksByTeam,
+    getTasksByProject,
+    deleteTask        
 };

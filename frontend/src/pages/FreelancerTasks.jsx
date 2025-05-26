@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import {  toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../assets/style/FreelancerTasks.css';
 import Header from '../components/Header';
@@ -35,12 +35,13 @@ const FreelancerTasks = () => {
         const data = await response.json();
 
         if (data.success) {
-          setTasks(data.data);
-          console.log(data.data)
+          // Filter out deleted tasks
+          const activeTasks = data.data.filter(task => !task.isDeleted);
+          setTasks(activeTasks);
 
           // Initialize githubUrls state with existing values
           const initialUrls = {};
-          data.data.forEach(task => {
+          activeTasks.forEach(task => {
             initialUrls[task._id] = task.githubUrl || '';
           });
           setGithubUrls(initialUrls);
@@ -60,14 +61,32 @@ const FreelancerTasks = () => {
 
   // Handle input change for GitHub URL
   const handleGithubUrlChange = (taskId, value) => {
-    setGithubUrls(prev => ({
-      ...prev,
-      [taskId]: value
-    }));
+    const task = tasks.find(t => t._id === taskId);
+    // Only allow changes if task hasn't been verified
+    if (!task.verified || task.verified.status === null) {
+      setGithubUrls(prev => ({
+        ...prev,
+        [taskId]: value
+      }));
+    }
   };
 
   // Submit GitHub URL
   const submitGithubUrl = async (taskId) => {
+    const task = tasks.find(t => t._id === taskId);
+    // Don't allow submission if task has been verified
+    if (task.verified && task.verified.status !== null) {
+      toast.warning('Cannot update GitHub URL for verified tasks', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
+      return;
+    }
+
     try {
       const response = await fetch(`/tasks/${taskId}/github-url`, {
         method: 'PATCH',
@@ -117,6 +136,20 @@ const FreelancerTasks = () => {
 
   // Update task status
   const updateTaskStatus = async (taskId, newStatus) => {
+    const task = tasks.find(t => t._id === taskId);
+    // Don't allow status changes if task has been verified
+    if (task.verified && task.verified.status !== null) {
+      toast.warning('Cannot update status for verified tasks', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
+      return;
+    }
+
     try {
       const response = await fetch(`/tasks/${taskId}/status`, {
         method: 'PATCH',
@@ -188,6 +221,11 @@ const FreelancerTasks = () => {
       <span className="verification-rejected">Rejected</span>;
   };
 
+  // Check if task is editable (not verified)
+  const isTaskEditable = (task) => {
+    return !task.verified || task.verified.status === null;
+  };
+
   // Render empty state component
   const EmptyState = () => (
     <div className="empty-state">
@@ -245,8 +283,6 @@ const FreelancerTasks = () => {
 
   return (
     <>
-   
-     
       <div className='header'>
         <Header />
       </div>
@@ -258,63 +294,69 @@ const FreelancerTasks = () => {
           <EmptyState />
         ) : (
           <div className="task-list">
-            {tasks.map(task => (
-              <div
-                key={task._id}
-                className={`task-card ${getStatusClass(task.status)}`}
-              >
-                <div className="task-header">
-                  <h2 className="task-title">{task.title}</h2>
-                  <div className="task-status">
-                    <select
-                      value={task.status}
-                      onChange={(e) => updateTaskStatus(task._id, e.target.value)}
-                      className={getStatusClass(task.status)}
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="in progress">In Progress</option>
-                      <option value="completed">Completed</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="task-description">
-                  {task.description}
-                </div>
-
-                <div className="task-details">
-                  <div className="task-project">
-                    <strong>Project:</strong> {task.projectId?.title || 'N/A'}
-                  </div>
-                  <div className="task-due-date">
-                    <strong>Due:</strong> {new Date(task.dueDate || task.createdAt).toLocaleDateString()}
-                  </div>
-                </div>
-
-                <div className="task-footer">
-                  <div className="github-url-section">
-                    <input
-                      type="url"
-                      placeholder="Enter GitHub URL for this task..."
-                      value={githubUrls[task._id] || ''}
-                      onChange={(e) => handleGithubUrlChange(task._id, e.target.value)}
-                    />
-                    <button
-                      className="submit-btn"
-                      onClick={() => submitGithubUrl(task._id)}
-                    >
-                      Submit
-                    </button>
-                  </div>
-
-                  {task.verified && (
-                    <div className="verification-status">
-                      {getVerificationBadge(task.verified)}
+            {tasks.map(task => {
+              const isEditable = isTaskEditable(task);
+              return (
+                <div
+                  key={task._id}
+                  className={`task-card ${getStatusClass(task.status)}`}
+                >
+                  <div className="task-header">
+                    <h2 className="task-title">{task.title}</h2>
+                    <div className="task-status">
+                      <select
+                        value={task.status}
+                        onChange={(e) => updateTaskStatus(task._id, e.target.value)}
+                        className={getStatusClass(task.status)}
+                        disabled={!isEditable}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="in progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                      </select>
                     </div>
-                  )}
+                  </div>
+
+                  <div className="task-description">
+                    {task.description}
+                  </div>
+
+                  <div className="task-details">
+                    <div className="task-project">
+                      <strong>Project:</strong> {task.projectId?.title || 'N/A'}
+                    </div>
+                    <div className="task-due-date">
+                      <strong>Due:</strong> {new Date(task.deadline || task.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+
+                  <div className="task-footer">
+                    <div className="github-url-section">
+                      <input
+                        type="url"
+                        placeholder="Enter GitHub URL for this task..."
+                        value={githubUrls[task._id] || ''}
+                        onChange={(e) => handleGithubUrlChange(task._id, e.target.value)}
+                        disabled={!isEditable}
+                      />
+                      <button
+                        className="submit-btn"
+                        onClick={() => submitGithubUrl(task._id)}
+                        disabled={!isEditable}
+                      >
+                        Submit
+                      </button>
+                    </div>
+
+                    {task.verified && (
+                      <div className="verification-status">
+                        {getVerificationBadge(task.verified)}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

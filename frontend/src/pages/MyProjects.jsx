@@ -123,8 +123,8 @@ const UserProjectsPage = () => {
             <section className="projects-section">
                 <div className="projects-header">
                     <h1 className='H1'>My Projects</h1>
-                    <Link 
-                        to="/projectfrom" 
+                    <Link
+                        to="/projectfrom"
                         className="create-project-btn"
                         onClick={() => toast.info('Redirecting to project creation')}
                     >
@@ -171,7 +171,7 @@ const UserProjectsPage = () => {
                                     <p><strong>Skills:</strong> {req.skills}</p>
                                     <p><strong>Username:</strong> {req.freelancerId.username}</p>
                                     <p><strong>Email:</strong> {req.freelancerId.email}</p>
-                                    <p><strong>Status:</strong> 
+                                    <p><strong>Status:</strong>
                                         <span className={`status-${req.status.toLowerCase()}`}>
                                             {req.status}
                                         </span>
@@ -179,14 +179,14 @@ const UserProjectsPage = () => {
                                 </div>
                                 {req.status === 'pending' && (
                                     <div className="request-actions">
-                                        <button 
-                                            className="accept-btn" 
+                                        <button
+                                            className="accept-btn"
                                             onClick={() => handleAccept(req._id)}
                                         >
                                             Accept
                                         </button>
-                                        <button 
-                                            className="refuse-btn" 
+                                        <button
+                                            className="refuse-btn"
                                             onClick={() => handleRefuse(req._id)}
                                         >
                                             Refuse

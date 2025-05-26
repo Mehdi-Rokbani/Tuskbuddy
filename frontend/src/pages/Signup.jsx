@@ -6,7 +6,7 @@ import Header from "../components/Header";
 import { Link } from "react-router-dom";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useNavigate } from "react-router-dom";
-import {  toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const SignupForm = () => {
@@ -15,19 +15,41 @@ const SignupForm = () => {
     const [password, setPassword] = useState("");
     const [passwordCheck, setPasswordCheck] = useState("");
     const [role, setRole] = useState("");
-    const { signup, Error, Loading } = useSingup();
+    const { signup, error, isLoading } = useSingup();
     const { user } = useAuthContext();
     const navigate = useNavigate();
+
+    const skillOptions = [
+        "HTML", "CSS", "JavaScript", "TypeScript", "React", "Angular", "Vue.js",
+        "Node.js", "Express", "MongoDB", "SQL", "Python", "Django", "Flask",
+        "PHP", "Laravel", "Ruby", "Ruby on Rails", "Java", "Spring Boot",
+        "C#", ".NET", "AWS", "Docker", "Kubernetes", "GraphQL", "REST API"
+    ];
+    const [selectedSkills, setSelectedSkills] = useState([]);
 
     // Redirect if user is already logged in
     if (user) {
         navigate('/');
     }
 
-    // Show error toast when Error from useSignup changes
-    if (Error) {
-        toast.error(Error);
+    // Show error toast when error from useSignup changes
+    if (error) {
+        toast.error(error);
     }
+
+    const handleSkillChange = (skill) => {
+        setSelectedSkills(prevSkills => {
+            if (prevSkills.includes(skill)) {
+                return prevSkills.filter(s => s !== skill);
+            } else {
+                return [...prevSkills, skill];
+            }
+        });
+    };
+
+    const removeSkill = (skillToRemove) => {
+        setSelectedSkills(selectedSkills.filter(skill => skill !== skillToRemove));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -39,16 +61,23 @@ const SignupForm = () => {
 
         if (password !== passwordCheck) {
             toast.error("Password confirmation doesn't match");
-        } else {
-            let user = {
-                email: email,
-                username: username,
-                password: password,
-                role: role
-            };
-
-            await signup(user);
+            return;
         }
+
+        if (role === "freelancer" && selectedSkills.length === 0) {
+            toast.warning("Please select at least one skill");
+            return;
+        }
+
+        const userData = {
+            email,
+            username,
+            password,
+            role,
+            ...(role === "freelancer" && { skills: selectedSkills }) // Only add skills if freelancer
+        };
+
+        await signup(userData);
     };
 
     return (
@@ -112,8 +141,49 @@ const SignupForm = () => {
                         </label>
                     </div>
 
-                    <button type="submit" disabled={Loading}>
-                        {Loading ? "Signing up..." : "Sign up"}
+                    {role === "freelancer" && (
+                        <div className="skills-section">
+                            <div className="skills-selector">
+                                <select 
+                                    onChange={(e) => {
+                                        const selectedSkill = e.target.value;
+                                        if (selectedSkill && selectedSkill !== "default") {
+                                            handleSkillChange(selectedSkill);
+                                            e.target.value = "default";
+                                        }
+                                    }}
+                                    defaultValue="default"
+                                >
+                                    <option value="default" disabled>Select your skills</option>
+                                    {skillOptions
+                                        .filter(skill => !selectedSkills.includes(skill))
+                                        .map(skill => (
+                                            <option key={skill} value={skill}>
+                                                {skill}
+                                            </option>
+                                        ))}
+                                </select>
+                            </div>
+
+                            <div className="selected-skills">
+                                {selectedSkills.map(skill => (
+                                    <div key={skill} className="skill-tag">
+                                        {skill}
+                                        <button 
+                                            type="button"
+                                            className="remove-skill-btn"
+                                            onClick={() => removeSkill(skill)}
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <button type="submit" disabled={isLoading}>
+                        {isLoading ? "Signing up..." : "Sign up"}
                     </button>
 
                     <p className="signin-text">
@@ -121,9 +191,6 @@ const SignupForm = () => {
                     </p>
                 </form>
             </div>
-
-            {/* Toast Container */}
-           
         </div>
     );
 };

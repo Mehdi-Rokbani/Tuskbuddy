@@ -83,4 +83,67 @@ body {
     color: #05326c;
     text-decoration: none;
   }
-  
+  /* Skills Section Styles */
+.skills-section {
+  margin: 15px 0;
+  width: 100%;
+}
+
+.skills-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.skills-selector select {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.add-skill-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.add-skill-btn:hover {
+  background-color: #45a049;
+}
+
+.selected-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.skill-tag {
+  background-color: #e0e0e0;
+  padding: 5px 10px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.85rem;
+}
+
+.remove-skill-btn {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.remove-skill-btn:hover {
+  color: #f44336;
+}

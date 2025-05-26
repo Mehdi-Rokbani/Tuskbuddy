@@ -15,7 +15,10 @@ import TeamTable from './pages/TeamTable';
 import FreelancerTasks from './pages/FreelancerTasks';
 import FreelancerRequests from './pages/freelancerreq';
 import NotFound from './pages/Notfound';
-import { ToastContainer} from 'react-toastify';
+import TeamDashboard from './pages/TeamDashboard';
+
+
+import { ToastContainer } from 'react-toastify';
 
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -42,6 +45,8 @@ function App() {
           {!user && (<Route path='/allprojects' element={<Login />}></Route>)}
           {user && (<Route path='/tt' element={<TeamTable />}></Route>)}
           {!user && (<Route path='/tt' element={<Login />}></Route>)}
+          {user && (<Route path='/teamdash' element={<TeamDashboard />}></Route>)}
+          {!user && (<Route path='/teamdash' element={<Login />}></Route>)}
 
           {user && (<Route path='/tasks' element={<FreelancerTasks />}></Route>)}
           {!user && (<Route path='/tasks' element={<Login />}></Route>)}
@@ -52,20 +57,20 @@ function App() {
           <Route path="*" element={<NotFound />} />
 
         </Routes>
-        
+
       </BrowserRouter>
       <ToastContainer
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
-            />
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </>
 
   );

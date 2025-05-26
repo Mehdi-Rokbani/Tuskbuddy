@@ -44,10 +44,9 @@ const login = async (req, res) => {
     }
 };
 
-
 // Register a new user
 const register = async (req, res) => {
-    const { username, email, password, role } = req.body;
+    const { username, email, password, role, skills } = req.body;
 
     try {
         // Validate email format
@@ -64,18 +63,67 @@ const register = async (req, res) => {
         // Validate password format
         const passwordRegex = /^[a-zA-Z0-9]{8,}$/;
         if (!passwordRegex.test(password)) {
-            return res.status(400).json({ error: 'Password must be at least 8 characters long and contain only letters and numbers.' });
+            return res.status(400).json({ 
+                error: 'Password must be at least 8 characters long and contain only letters and numbers.' 
+            });
+        }
+
+        // Validate skills for freelancers
+        if (role === 'freelancer') {
+            if (!skills || !Array.isArray(skills) || skills.length === 0) {
+                return res.status(400).json({ 
+                    error: 'Freelancers must select at least one skill.' 
+                });
+            }
+            
+            // Validate each skill is from the allowed options
+            const allowedSkills = [
+                "HTML", "CSS", "JavaScript", "TypeScript", "React", "Angular", "Vue.js",
+                "Node.js", "Express", "MongoDB", "SQL", "Python", "Django", "Flask",
+                "PHP", "Laravel", "Ruby", "Ruby on Rails", "Java", "Spring Boot",
+                "C#", ".NET", "AWS", "Docker", "Kubernetes", "GraphQL", "REST API"
+            ];
+            
+            const invalidSkills = skills.filter(skill => !allowedSkills.includes(skill));
+            if (invalidSkills.length > 0) {
+                return res.status(400).json({ 
+                    error: `Invalid skills selected: ${invalidSkills.join(', ')}` 
+                });
+            }
         }
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        // Create user object with conditional skills
+        const userData = {
+            username,
+            email,
+            password: hashedPassword,
+            role,
+            ...(role === 'freelancer' && { skills }) // Only add skills if freelancer
+        };
+
         // Create and save the new user
-        const newUser = await user.create({ username, email, password: hashedPassword, role })
+        const newUser = await user.create(userData);
 
-        token = createToken(newUser._id)
+        // Create token
+        const token = createToken(newUser._id);
 
-        res.status(201).json({ message: 'User registered successfully.', user: newUser, token });
+        // Return response without password
+        const userResponse = {
+            _id: newUser._id,
+            username: newUser.username,
+            email: newUser.email,
+            role: newUser.role,
+            ...(newUser.skills && { skills: newUser.skills }) // Only include skills if they exist
+        };
+
+        res.status(201).json({ 
+            message: 'User registered successfully.', 
+            user: userResponse, 
+            token 
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
