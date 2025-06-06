@@ -164,7 +164,7 @@ const acceptRequest = async (req, res) => {
         if (request.projectId) {
             await project.findByIdAndUpdate(
                 request.projectId,
-                { $inc: { nbmembers: -1 } }
+                { $inc: { currentmembers: +1 } }
             );
         }
 
@@ -178,7 +178,7 @@ const acceptRequest = async (req, res) => {
             });
         } else {
             if (!team.members.includes(request.userId)) {
-                team.members.push(request.userId);
+                team.members.push(request.freelancerId);
             }
         }
         await team.save();

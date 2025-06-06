@@ -139,20 +139,7 @@ export default function Header() {
         </nav>
 
         {/* Search Bar */}
-        <div className="header-search">
-          <form onSubmit={handleSearch}>
-            <div className="search-container">
-              <FontAwesomeIcon icon={faSearch} className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search projects or users..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
-              />
-            </div>
-          </form>
-        </div>
+        
 
         {/* User Controls */}
         <div className="header-right">

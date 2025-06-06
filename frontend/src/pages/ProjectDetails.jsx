@@ -80,7 +80,7 @@ const ProjectDetails = () => {
         </div>
     );
 
-    const canJoin = userRole !== 'client' && owner._id !== userId && !isMember && project.nbmembers > 0;
+    const canJoin = userRole !== 'client' && owner._id !== userId && !isMember && project.nbmembers-project.currentmembers > 0;
 
     return (
         <>
@@ -116,7 +116,7 @@ const ProjectDetails = () => {
                                         </div>
                                         <div className="detail-content">
                                             <h3>Members Needed</h3>
-                                            <p className="highlight">{project.nbmembers} position{project.nbmembers !== 1 ? 's' : ''} available</p>
+                                            <p className="highlight">{project.nbmembers-project.currentmembers} position{project.nbmembers !== 1 ? 's' : ''} available</p>
                                         </div>
                                     </div>
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSingup } from "../hooks/useSignup";
 import "../assets/style/Signup.css";
 import "../assets/style/Header.css";
@@ -28,14 +28,49 @@ const SignupForm = () => {
     const [selectedSkills, setSelectedSkills] = useState([]);
 
     // Redirect if user is already logged in
-    if (user) {
-        navigate('/');
-    }
+    useEffect(() => {
+        if (user) {
+            navigate('/');
+        }
+    }, [user, navigate]);
 
     // Show error toast when error from useSignup changes
-    if (error) {
-        toast.error(error);
-    }
+    useEffect(() => {
+        if (error) {
+            // Parse backend errors to more user-friendly messages
+            let errorMessage = error;
+
+            if (error.includes('password')) {
+                if (error.includes('shorter than the minimum allowed length')) {
+                    errorMessage = "Password must be at least 6 characters long";
+                } else if (error.includes('uppercase letter')) {
+                    errorMessage = "Password must contain at least one uppercase letter";
+                } else if (error.includes('number')) {
+                    errorMessage = "Password must contain at least one number";
+                }
+            } else if (error.includes('email')) {
+                if (error.includes('valid email')) {
+                    errorMessage = "Please enter a valid email address";
+                } else if (error.includes('already in use')) {
+                    errorMessage = "This email is already registered";
+                }
+            } else if (error.includes('username')) {
+                if (error.includes('already taken')) {
+                    errorMessage = "Username is already taken";
+                }
+            }
+
+            toast.error(errorMessage, {
+                position: "top-center",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            });
+        }
+    }, [error]);
 
     const handleSkillChange = (skill) => {
         setSelectedSkills(prevSkills => {
@@ -51,33 +86,77 @@ const SignupForm = () => {
         setSelectedSkills(selectedSkills.filter(skill => skill !== skillToRemove));
     };
 
+    const validatePassword = (password) => {
+        if (password.length < 6) {
+            toast.warning("Password must be at least 6 characters long", {
+                position: "top-center"
+            });
+            return false;
+        }
+        if (!/[0-9]/.test(password)) {
+            toast.warning("Password must contain at least one number", {
+                position: "top-center"
+            });
+            return false;
+        }
+        return true;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!email || !username || !password || !passwordCheck || !role) {
-            toast.warning("Please fill in all required fields");
+            toast.warning("Please fill in all required fields", {
+                position: "top-center"
+            });
+            return;
+        }
+
+        if (!validatePassword(password)) {
             return;
         }
 
         if (password !== passwordCheck) {
-            toast.error("Password confirmation doesn't match");
+            toast.error("Password confirmation doesn't match", {
+                position: "top-center"
+            });
             return;
         }
 
         if (role === "freelancer" && selectedSkills.length === 0) {
-            toast.warning("Please select at least one skill");
+            toast.warning("Please select at least one skill", {
+                position: "top-center"
+            });
             return;
         }
 
-        const userData = {
-            email,
-            username,
-            password,
-            role,
-            ...(role === "freelancer" && { skills: selectedSkills }) // Only add skills if freelancer
-        };
+        // Show loading toast
+        const toastId = toast.loading("Creating your account...", {
+            position: "top-center"
+        });
 
-        await signup(userData);
+        try {
+            const userData = {
+                email,
+                username,
+                password,
+                role,
+                ...(role === "freelancer" && { skills: selectedSkills })
+            };
+
+            await signup(userData);
+
+            // Update toast on success
+            toast.update(toastId, {
+                render: "Account created successfully!",
+                type: "success",
+                isLoading: false,
+                autoClose: 3000,
+            });
+        } catch (err) {
+            // Error will be handled by the useEffect error handler
+            toast.dismiss(toastId);
+        }
     };
 
     return (
@@ -107,14 +186,14 @@ const SignupForm = () => {
                     />
                     <input
                         type="password"
-                        placeholder="Password"
+                        placeholder="Password (min 6 chars, 1 uppercase, 1 number)"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                     />
                     <input
                         type="password"
-                        placeholder="Password check"
+                        placeholder="Confirm Password"
                         value={passwordCheck}
                         onChange={(e) => setPasswordCheck(e.target.value)}
                         required
@@ -144,7 +223,7 @@ const SignupForm = () => {
                     {role === "freelancer" && (
                         <div className="skills-section">
                             <div className="skills-selector">
-                                <select 
+                                <select
                                     onChange={(e) => {
                                         const selectedSkill = e.target.value;
                                         if (selectedSkill && selectedSkill !== "default") {
@@ -169,7 +248,7 @@ const SignupForm = () => {
                                 {selectedSkills.map(skill => (
                                     <div key={skill} className="skill-tag">
                                         {skill}
-                                        <button 
+                                        <button
                                             type="button"
                                             className="remove-skill-btn"
                                             onClick={() => removeSkill(skill)}

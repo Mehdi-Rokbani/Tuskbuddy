@@ -123,15 +123,11 @@ const UserProjectsPage = () => {
                             to="/projectfrom"
                             className="create-project-btn"
                         >
-                            {projects.length > 0 ? '+ Create New Project' : '+ Create Your First Project'}
+                            {projects.length     > 0 ? '+ Create New Project' : '+ Create Your First Project'}
                         </Link>
                     </div>
 
-                    {error && (
-                        <div className="error-message">
-                            {toast.error(error)}
-                        </div>
-                    )}
+                    
 
                     <div className="projects-grid">
                         {projects.length > 0 ? (

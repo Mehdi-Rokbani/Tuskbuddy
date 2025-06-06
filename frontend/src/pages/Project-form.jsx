@@ -164,7 +164,7 @@ const CreateProjectForm = () => {
                                     name="startDate"
                                     value={formData.startDate}
                                     onChange={handleChange}
-                                    min={new Date().toISOString().split('T')[0]}
+                                    //min={new Date().toISOString().split('T')[0]}
                                     required
                                 />
                             </div>
@@ -220,8 +220,8 @@ const CreateProjectForm = () => {
                         {error && <div className="error-message">{error}</div>}
 
                         <div className="form-actions">
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 className="submit-button"
                                 disabled={isSubmitting}
                             >

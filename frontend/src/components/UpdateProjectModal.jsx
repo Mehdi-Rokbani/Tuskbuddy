@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
 import '../assets/style/UpdateProjectModal.css';
 
+const skillOptions = [
+  "HTML", "CSS", "JavaScript", "TypeScript", "React", "Angular", "Vue.js",
+  "Node.js", "Express", "MongoDB", "SQL", "Python", "Django", "Flask",
+  "PHP", "Laravel", "Ruby", "Ruby on Rails", "Java", "Spring Boot",
+  "C#", ".NET", "AWS", "Docker", "Kubernetes", "GraphQL", "REST API"
+];
+
 const UpdateProjectModal = ({ project, onClose, onUpdate }) => {
+  // Initialize techused as an array, ensuring it's always an array
   const [formData, setFormData] = useState({
     title: project.title,
     description: project.description,
     nbmembers: project.nbmembers,
-    techused: project.techused,
+    techused: Array.isArray(project.techused) ? project.techused : [project.techused].filter(Boolean),
     deadline: project.deadline.slice(0, 10),
     startDate: project.startDate.slice(0, 10),
     status: project.status,
@@ -19,6 +27,17 @@ const UpdateProjectModal = ({ project, onClose, onUpdate }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleTechUsedChange = (e) => {
+    const { value, checked } = e.target;
+    setFormData(prev => {
+      if (checked) {
+        return { ...prev, techused: [...prev.techused, value] };
+      } else {
+        return { ...prev, techused: prev.techused.filter(tech => tech !== value) };
+      }
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -28,7 +47,10 @@ const UpdateProjectModal = ({ project, onClose, onUpdate }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          techused: formData.techused.filter(tech => tech) // Remove any empty values
+        }),
       });
 
       if (response.ok) {
@@ -93,14 +115,21 @@ const UpdateProjectModal = ({ project, onClose, onUpdate }) => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="techused">Technologies Used</label>
-              <input
-                id="techused"
-                name="techused"
-                value={formData.techused}
-                onChange={handleChange}
-                required
-              />
+              <label>Technologies Used</label>
+              <div className="techused-container">
+                {skillOptions.map((skill) => (
+                  <div key={skill} className="techused-option">
+                    <input
+                      type="checkbox"
+                      id={`tech-${skill}`}
+                      value={skill}
+                      checked={formData.techused.includes(skill)}
+                      onChange={handleTechUsedChange}
+                    />
+                    <label htmlFor={`tech-${skill}`}>{skill}</label>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="form-group">
@@ -144,7 +173,6 @@ const UpdateProjectModal = ({ project, onClose, onUpdate }) => {
           </div>
 
           <div className="modal-actions">
-
             <button
               type="button"
               onClick={onClose}

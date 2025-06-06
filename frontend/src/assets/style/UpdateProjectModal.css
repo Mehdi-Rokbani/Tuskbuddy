@@ -28,6 +28,7 @@
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -165,18 +166,35 @@ form {
   .form-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .form-group:nth-child(1),
   .form-group:nth-child(2) {
     grid-column: span 1;
   }
-  
+
   .modal-actions {
     flex-direction: column-reverse;
   }
-  
+
   .primary-button,
   .secondary-button {
     width: 100%;
   }
+}
+
+.techused-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.techused-option {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.techused-option input[type="checkbox"] {
+  margin: 0;
 }

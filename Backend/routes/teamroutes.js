@@ -5,7 +5,7 @@ const {
     removeMemberFromTeam,
     getProjectsByMemberId,
     getTeamById,
-    getTeamsByPoject
+    getTeamsByPoject,getAllMembers
 } = require('../contollers/teamcontrol');
 
 // Remove a member from a team
@@ -16,5 +16,6 @@ router.get('/:id',getTeamById);
 router.get('/projects/:memberId', getProjectsByMemberId);
 router.get('/find/:id',getTeamsByUserId);
 router.get('/findt/:id',getTeamsByPoject)
+router.get('/members/:teamId',getAllMembers)
 
 module.exports = router;

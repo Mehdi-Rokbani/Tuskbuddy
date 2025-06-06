@@ -52,6 +52,7 @@ const TeamTable = () => {
 
             const userOwned = data.filter(team => team.ownerId._id === userId);
             setOwnedTeams(userOwned);
+            console.log(userOwned)
 
             const tasksPromises = [];
             userOwned.forEach(team => {
@@ -288,7 +289,7 @@ const TeamTable = () => {
                         </button>
                     </div>
                     <p className="empty-teams-help">
-                        Need help? <Link to="/help">Visit our help center</Link>
+                        Need help? <Link to="/">Visit our help center</Link>
                     </p>
                 </div>
             </>
